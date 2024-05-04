@@ -32,6 +32,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'jet',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -39,7 +40,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # own apps
-    'post',
+    'apps.post',
+    'apps.category',
+    'apps.core',
+    'apps.authentication',
     # 'crispy_forms',
 ]
 
@@ -53,7 +57,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'app.urls'
+ROOT_URLCONF = 'IPDD.urls'
 
 TEMPLATES = [
     {
@@ -71,7 +75,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'app.wsgi.application'
+WSGI_APPLICATION = 'IPDD.wsgi.application'
 
 
 # Database
@@ -87,6 +91,8 @@ DATABASES = {
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
+
+AUTH_USER_MODEL = 'authentication.Profile'
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -109,11 +115,11 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Bishkek'
 
 USE_I18N = True
 
-USE_TZ = True
+# USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)
@@ -129,6 +135,7 @@ LOGIN_REDIRECT_URL = ''
 LOGOUT_REDIRECT_URL = ''
 LOGIN_URL = ''
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
+JET_SIDE_MENU_COMPACT = True
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
