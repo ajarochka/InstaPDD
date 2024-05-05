@@ -1,6 +1,6 @@
-# from django.contrib.gis.db.models import PointField
 from apps.category.models import Category, Violator
 from django.contrib.auth import get_user_model
+# from apps.core.fields import OSMPointField
 from django.db import models
 
 UserModel = get_user_model()
@@ -11,8 +11,8 @@ class Post(models.Model):
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
     address = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField()
+    # location = OSMPointField()
     created_at = models.DateTimeField(auto_now_add=True)
-    # location = PointField()
 
     class Meta:
         ordering = ('-created_at',)
@@ -31,3 +31,10 @@ class PostComment(models.Model):
     user = models.ForeignKey(UserModel, on_delete=models.CASCADE)
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
     text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ('-created_at',)
+
+    def __str__(self):
+        return f'{self.user} - {self.created_at}'

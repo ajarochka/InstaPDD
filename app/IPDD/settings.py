@@ -10,12 +10,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
+from IPDD import jet_config
 from pathlib import Path
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
@@ -26,11 +26,9 @@ SECRET_KEY = 'django-insecure-kbkkln+i3)+pmf7oaf8+v59+=7=ou%8u(65un%13xnt(-6!4b(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['*']
 
 # Application definition
-
 INSTALLED_APPS = [
     'jet',
     'django.contrib.admin',
@@ -44,7 +42,6 @@ INSTALLED_APPS = [
     'apps.category',
     'apps.core',
     'apps.authentication',
-    # 'crispy_forms',
 ]
 
 MIDDLEWARE = [
@@ -56,6 +53,11 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+X_FRAME_OPTIONS = 'ALLOWALL'
 
 ROOT_URLCONF = 'IPDD.urls'
 
@@ -77,7 +79,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'IPDD.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
@@ -88,6 +89,16 @@ DATABASES = {
     }
 }
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.contrib.gis.db.backends.postgis',
+#         'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
+#         'PORT': os.environ.get('DB_PORT', '5432'),
+#         'NAME': os.environ.get('DB_NAME', 'ipdd'),
+#         'USER': os.environ.get('DB_USER', 'ipdd'),
+#         'PASSWORD': os.environ.get('DB_PASS', 'ipdd'),
+#     },
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -109,7 +120,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
@@ -126,18 +136,20 @@ USE_I18N = True
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
 STATIC_URL = 'static/'
-
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),]
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'), ]
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 LOGIN_REDIRECT_URL = ''
 LOGOUT_REDIRECT_URL = ''
 LOGIN_URL = ''
-CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
+# Django-Jet settings
 JET_SIDE_MENU_COMPACT = True
+JET_SIDE_MENU_ITEMS = jet_config.menu_items
+JET_THEMES = jet_config.themes
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

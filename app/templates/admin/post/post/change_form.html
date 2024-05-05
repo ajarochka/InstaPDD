@@ -1,0 +1,60 @@
+{% extends "admin/change_form.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static "css/styles.css" %}"/>
+{% endblock %}
+
+
+{% block content %}
+    {{ block.super }}
+
+    <div id="image-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <div class="modal-header row">
+                    <div class="col-10">
+                        <div style="font-size: 1.25rem">{% trans 'Image preview' %}</div>
+                    </div>
+                    <div class="col-2 text-right">
+                        <span id="close-modal-btn" class="close-modal-btn">&times;</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-body text-center">
+                <img style="max-width: 100%; object-fit: cover;" id="modal-img" src="" alt="">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", onDomLoaded);
+
+        function onDomLoaded() {
+            setupImgModal();
+        }
+
+        function setupImgModal() {
+            let modal = document.getElementById("image-modal");
+            let btns = document.getElementsByClassName("image-modal-btn");
+            let closeBtn = document.getElementById("close-modal-btn");
+            let modalImage = document.getElementById('modal-img');
+            for (let i = 0; i < btns.length; i++) {
+                btns[i].onclick = function () {
+                    let imgSrc = btns[i].firstElementChild.src;
+                    modal.style.display = "block";
+                    modalImage.src = imgSrc;
+                }
+            }
+            closeBtn.onclick = function () {
+                modal.style.display = "none";
+            }
+            window.onclick = function (event) {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            }
+        }
+    </script>
+{% endblock %}
