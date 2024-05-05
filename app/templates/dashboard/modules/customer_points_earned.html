@@ -1,0 +1,90 @@
+{% load i18n %}
+
+<div class="box">
+    <div class="row" style="margin-top: 1rem;">
+        <div class="col-1"></div>
+        <div class="col-11">
+            <span style="font-size: 1.3rem">{% trans 'Top points earned users' %}</span>
+        </div>
+    </div>
+    <br>
+    <br>
+    <div style="font-size: 1.2rem;" id="top_points_earned"></div>
+</div>
+
+{#Keep the variable names unique, so they don't conflict with other dashboard modules...#}
+<script>
+    function loadPointsEarnedInfo(date_from = '', date_to = '') {
+        let params = {"date_from": date_from, "date_to": date_to};
+        let query = new URLSearchParams(params);
+        let url = "{% url 'api:statistics:customer_points_earned' %}?" + query.toString();
+        fetch(url).then(function (response) {
+            return response.json();
+        }).then(function (data) {
+            let info = data.data;
+            populatePointsEarnedTable(info);
+        });
+    }
+
+    function populatePointsEarnedTable(data) {
+        let list_url = "{% url 'admin:authentication_profile_changelist' %}";
+        let tableDiv = document.getElementById("top_points_earned");
+        tableDiv.innerText = "";
+        if (data.length < 1) {
+            return;
+        }
+        let header = document.createElement('div');
+        header.classList.add('row');
+        header.style.fontWeight = 'bold';
+        let imageHeader = document.createElement('div');
+        imageHeader.classList.add('col-3');
+        imageHeader.classList.add('text-center');
+        imageHeader.innerText = "{% trans 'Photo' %}";
+        let countHeader = document.createElement('div');
+        countHeader.classList.add('col-3');
+        countHeader.classList.add('text-center');
+        countHeader.style.fontWeight = 'bold';
+        countHeader.innerText = "{% trans 'Count' %}";
+        let nameHeader = document.createElement('div');
+        nameHeader.classList.add('col-6');
+        nameHeader.classList.add('text-center');
+        nameHeader.innerText = "{% trans 'Name' %}";
+        header.appendChild(imageHeader);
+        header.appendChild(nameHeader);
+        header.appendChild(countHeader);
+        tableDiv.appendChild(header);
+        tableDiv.appendChild(document.createElement('br'));
+        for (let i = 0; i < data.length; i++) {
+            let row = document.createElement('div');
+            row.classList.add('row');
+            row.classList.add('allign-center');
+            let imageCol = document.createElement('div');
+            let image = document.createElement('img');
+            imageCol.classList.add('col-3');
+            imageCol.classList.add('text-center');
+            image.src = '/media/' + data[i].photo;
+            image.style.height = '4rem';
+            image.style.width = '4rem';
+            image.style.objectFit = 'cover';
+            image.style.borderRadius = '0.5rem';
+            image.style.position = 'center';
+            imageCol.appendChild(image);
+            let countCol = document.createElement('div');
+            countCol.classList.add('col-3');
+            countCol.classList.add('text-center');
+            countCol.innerText = data[i].count / 100;
+            let nameCol = document.createElement('div');
+            let nameLink = document.createElement('a');
+            nameCol.classList.add('col-6');
+            nameLink.classList.add('link');
+            {#nameLink.classList.add('text-dark');#}
+            nameLink.innerText = data[i].first_name + ' ' + data[i].last_name;
+            nameLink.href = `${list_url}${data[i].id}/change/`;
+            nameCol.appendChild(nameLink);
+            row.appendChild(imageCol);
+            row.appendChild(nameCol);
+            row.appendChild(countCol);
+            tableDiv.appendChild(row);
+        }
+    }
+</script>

@@ -1,0 +1,127 @@
+{% load static i18n %}
+
+<div id="activity_chart"></div>
+
+
+<script>
+    let activity_data = {% if activity_data %}{{ activity_data|safe }}{% else %}[]{% endif %};
+    let week_days = {% if week_days %}{{ week_days|safe }}{% else %}[]{% endif %};
+
+    var activity_options = {
+        series: [
+            {
+                name: week_days[6],
+                data: activity_data[6]
+            },
+            {
+                name: week_days[5],
+                data: activity_data[5]
+            },
+            {
+                name: week_days[4],
+                data: activity_data[4]
+            },
+            {
+                name: week_days[3],
+                data: activity_data[3]
+            },
+            {
+                name: week_days[2],
+                data: activity_data[2]
+            },
+            {
+                name: week_days[1],
+                data: activity_data[1]
+            },
+            {
+                name: week_days[0],
+                data: activity_data[0]
+            }
+        ],
+        yaxis: {
+            labels: {
+                style: {
+                    fontSize: '0.8rem'
+                }
+            }
+        },
+        xaxis: {
+            labels: {
+                {#show: false#}
+                formatter: function (value) {
+                    let info = value.split(' ');
+                    let day = parseInt(info[0]);
+                    if (day > 11 && day < 19) {
+                        return info[1];
+                    }
+                    return '';
+                },
+                style: {
+                    fontSize: '1rem'
+                }
+            },
+            tooltip: {
+                enabled: false
+            }
+        },
+        tooltip: {
+            theme: 'dark',
+            y: {
+                formatter: (value, options) => {
+                    res = options.w.config.series[options.seriesIndex].data[options.dataPointIndex].x;
+                    res += `<br/>{% trans 'Orders' %}: ${options.w.config.series[options.seriesIndex].data[options.dataPointIndex].y}`
+                    return res
+                },
+                title: {
+                    formatter: (seriesName) => '',
+                },
+            },
+            style: {
+                fontSize: '1.25rem'
+            }
+        },
+        chart: {
+            parentHeightOffset: 0,
+            background: '#f1f1f1',
+            height: '260',
+            type: 'heatmap',
+            animations: {
+                enabled: false
+            },
+            {% if order_url %}
+                events: {
+                    click: function (event, chartContext, config) {
+                        if (config.seriesIndex == -1 || config.dataPointIndex == -1) {
+                            return;
+                        }
+                        if (!config.config.series[config.seriesIndex].data[config.dataPointIndex].y) {
+                            return;
+                        }
+                        console.log(config);
+                        let date = config.config.series[config.seriesIndex].data[config.dataPointIndex].iso_date;
+                        let url = "{{ order_url }}";
+                        url += `?created_at__range__gte=${date}&created_at__range__lte=${date}`;
+                        window.location = url;
+                    }
+                }
+            {% endif %}
+        },
+        plotOptions: {
+            heatmap: {
+                radius: 8
+            }
+        },
+        dataLabels: {
+            enabled: false
+        },
+        colors: ["#02d88d"]
+    };
+
+    let activity_chart = new ApexCharts(document.querySelector("#activity_chart"), activity_options);
+    activity_chart.render();
+</script>
+
+
+{#xaxis: {#}
+{#type: 'category',#}
+{#categories: ['January', '', '', 'April', '', '', 'July', '', '', 'October', '', '']},#}

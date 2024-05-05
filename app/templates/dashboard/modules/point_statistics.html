@@ -1,0 +1,52 @@
+{% load i18n %}
+
+<div class="box">
+    <div style="font-size: 1.5rem; margin-bottom: 0.5rem">{% trans 'Points' %}</div>
+    <table style="background-color: #ffffff00;">
+        <tr>
+            <td style="padding: 0"></td>
+            <td style="padding: 0">{% trans 'Earned' %}</td>
+            <td style="padding: 0"></td>
+            <td style="padding: 0">{% trans 'Used' %}</td>
+        </tr>
+        <tr style="border: none">
+            <td style="padding: 0">
+                <svg style="width: 2rem; height: 2rem;" viewBox="0 0 1792 1792" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1683 1331l-166 165q-19 19-45 19t-45-19l-531-531-531 531q-19 19-45 19t-45-19l-166-165q-19-19-19-45.5t19-45.5l742-741q19-19 45-19t45 19l742 741q19 19 19 45.5t-19 45.5z"
+                          fill="#19c919"></path>
+                </svg>
+            </td>
+            <td style="padding: 0">
+                <strong><span style="font-size: 1.5rem" id="earned_points">0</span></strong>
+            </td>
+            <td style="padding: 0">
+                <svg style="width: 2rem; height: 2rem;" viewBox="0 0 1792 1792" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1683 808l-742 741q-19 19-45 19t-45-19l-742-741q-19-19-19-45.5t19-45.5l166-165q19-19 45-19t45 19l531 531 531-531q19-19 45-19t45 19l166 165q19 19 19 45.5t-19 45.5z"
+                          fill="#cb176d"></path>
+                </svg>
+            </td>
+            <td style="padding: 0">
+                <strong><span style="font-size: 1.5rem" id="used_points">0</span></strong>
+            </td>
+        </tr>
+    </table>
+</div>
+
+{# Keep the variable names unique, so they don't conflict with other dashboard modules... #}
+<script>
+    let earnedPointsDiv = document.getElementById("earned_points");
+    let usedPointsDiv = document.getElementById("used_points");
+
+    function loadPointsInfo(date_from = '', date_to = '') {
+        let params = {"date_from": date_from, "date_to": date_to};
+        let query = new URLSearchParams(params);
+        let url = "{% url 'api:statistics:point' %}?" + query.toString();
+        fetch(url).then(function (response) {
+            return response.json();
+        }).then(function (data) {
+            let info = data.data;
+            earnedPointsDiv.innerText = info.earned;
+            usedPointsDiv.innerText = info.used;
+        });
+    }
+</script>

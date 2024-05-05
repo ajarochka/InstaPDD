@@ -1,0 +1,68 @@
+{% load i18n %}
+
+<div class="box">
+    <span style="font-size: 1.5rem">{% trans 'PAU' %}</span>
+    <br>
+    <strong>
+        <span style="font-size: 2rem" id="active-customer-count"></span>
+    </strong>
+    <div id="active_customer_chart"></div>
+</div>
+
+{#Keep the variable names unique, so they don't conflict with other dashboard modules...#}
+<script>
+    var active_customer_options = {
+        series: [{
+            data: []
+        }],
+        chart: {
+            type: 'line',
+            height: 80,
+            sparkline: {
+                enabled: true
+            },
+        },
+        stroke: {
+            curve: 'smooth',
+            width: 6
+        },
+        yaxis: {
+            min: 0
+        },
+        colors: ['#0a9968'],
+        tooltip: {
+            theme: 'dark',
+            x: {show: false},
+            y: {title: {formatter: (val) => ""}}
+        },
+        grid: {
+            padding: {
+                top: 24,
+                bottom: 10
+            }
+        }
+    };
+
+    let active_customer_chart = new ApexCharts(document.querySelector("#active_customer_chart"), active_customer_options);
+    active_customer_chart.render();
+    let activeCustomerCountDiv = document.getElementById("active-customer-count");
+
+    function loadActiveCustomerInfo(date_from = "", date_to = "") {
+        let params = {"date_from": date_from, "date_to": date_to};
+        let query = new URLSearchParams(params);
+        let url = "{% url 'api:statistics:active_customer' %}?" + query.toString();
+        fetch(url).then(function (response) {
+            return response.json();
+        }).then(function (data) {
+            let info = data.data.statistics;
+            let customer_data_arr = []
+            for (let i = 0; i < info.length; i++) {
+                customer_data_arr.push(info[i].count);
+            }
+            active_customer_chart.updateSeries([{
+                data: customer_data_arr
+            }]);
+            activeCustomerCountDiv.innerText = data.data.count;
+        });
+    }
+</script>

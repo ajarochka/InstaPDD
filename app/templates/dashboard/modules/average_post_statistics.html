@@ -1,0 +1,51 @@
+{% load i18n %}
+
+<div class="box">
+    <div style="font-size: 1.5rem; margin-bottom: 0.5rem">{% trans 'Orders' %}</div>
+    <table style="background-color: #ffffff00;">
+        <tr style="border: none">
+            <td rowspan="2" style="padding: 0">
+                <svg fill="#fff" style="width: 2.5rem; height: 2.5rem;" viewBox="0 0 1792 1792"
+                     xmlns="http://www.w3.org/2000/svg">
+                    <path d="M832 64v640q0 61-35.5 111t-92.5 70v779q0 52-38 90t-90 38h-128q-52 0-90-38t-38-90v-779q-57-20-92.5-70t-35.5-111v-640q0-26 19-45t45-19 45 19 19 45v416q0 26 19 45t45 19 45-19 19-45v-416q0-26 19-45t45-19 45 19 19 45v416q0 26 19 45t45 19 45-19 19-45v-416q0-26 19-45t45-19 45 19 19 45zm768 0v1600q0 52-38 90t-90 38h-128q-52 0-90-38t-38-90v-512h-224q-13 0-22.5-9.5t-9.5-22.5v-800q0-132 94-226t226-94h256q26 0 45 19t19 45z"
+                          fill="#000"></path>
+                </svg>
+            </td>
+            <td style="padding: 0">{% trans 'Total' %}</td>
+            <td style="padding: 0">{% trans 'Average' %}</td>
+        </tr>
+        <tr style="border: none">
+            <td style="padding: 0">
+                <strong><span style="font-size: 1.5rem" id="total_order">0</span></strong>
+            </td>
+            <td style="padding: 0">
+                <strong><span style="font-size: 1.5rem" id="average_order">0</span></strong>
+            </td>
+        </tr>
+    </table>
+</div>
+
+{# Keep the variable names unique, so they don't conflict with other dashboard modules... #}
+<script>
+    let totalOrderDiv = document.getElementById("total_order");
+    let averageOrderDiv = document.getElementById("average_order");
+
+    function loadOrderInfo(date_from = '', date_to = '') {
+        let params = {"date_from": date_from, "date_to": date_to};
+        let query = new URLSearchParams(params);
+        let urlTotal = "{% url 'api:statistics:order_total' %}?" + query.toString();
+        let urlAvg = "{% url 'api:statistics:average_order' %}?" + query.toString();
+        fetch(urlTotal).then(function (response) {
+            return response.json();
+        }).then(function (data) {
+            let info = data.data;
+            totalOrderDiv.innerText = info.count;
+        });
+        fetch(urlAvg).then(function (response) {
+            return response.json();
+        }).then(function (data) {
+            let info = data.data;
+            averageOrderDiv.innerText = info.average;
+        });
+    }
+</script>
