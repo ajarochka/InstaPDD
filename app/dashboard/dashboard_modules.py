@@ -36,6 +36,13 @@ class CustomerTotal(DashboardModule):
     draggable = False
 
 
+class PostStatisticsModule(DashboardModule):
+    template = 'dashboard/modules/post_statistics.html'
+    deletable = False
+    collapsible = False
+    draggable = False
+
+
 class PointsStatistics(DashboardModule):
     template = 'dashboard/modules/point_statistics.html'
     deletable = False
@@ -43,8 +50,8 @@ class PointsStatistics(DashboardModule):
     draggable = False
 
 
-class PostStatisticsModule(DashboardModule):
-    template = 'dashboard/modules/post_statistics.html'
+class PostTotalModule(DashboardModule):
+    template = 'dashboard/modules/post_total.html'
     deletable = False
     collapsible = False
     draggable = False

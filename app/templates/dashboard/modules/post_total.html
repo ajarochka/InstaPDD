@@ -1,0 +1,34 @@
+{% load i18n %}
+
+<div class="box sparkbox2">
+    <div style="font-size: 1.5rem; margin-bottom: 0.5rem">{% trans 'Total posts' %}</div>
+    <table style="background-color: #ffffff00;">
+        <tr style="border: none">
+            <td rowspan="2" style="padding: 0">
+                <?xml version="1.0" encoding="utf-8"?>
+                <svg style="width: 2.5rem; height: 2.5rem;" viewBox="0 0 2048 1792" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M657 896q-162 5-265 128h-134q-82 0-138-40.5t-56-118.5q0-353 124-353 6 0 43.5 21t97.5 42.5 119 21.5q67 0 133-23-5 37-5 66 0 139 81 256zm1071 637q0 120-73 189.5t-194 69.5h-874q-121 0-194-69.5t-73-189.5q0-53 3.5-103.5t14-109 26.5-108.5 43-97.5 62-81 85.5-53.5 111.5-20q10 0 43 21.5t73 48 107 48 135 21.5 135-21.5 107-48 73-48 43-21.5q61 0 111.5 20t85.5 53.5 62 81 43 97.5 26.5 108.5 14 109 3.5 103.5zm-1024-1277q0 106-75 181t-181 75-181-75-75-181 75-181 181-75 181 75 75 181zm704 384q0 159-112.5 271.5t-271.5 112.5-271.5-112.5-112.5-271.5 112.5-271.5 271.5-112.5 271.5 112.5 112.5 271.5zm576 225q0 78-56 118.5t-138 40.5h-134q-103-123-265-128 81-117 81-256 0-29-5-66 66 23 133 23 59 0 119-21.5t97.5-42.5 43.5-21q124 0 124 353zm-128-609q0 106-75 181t-181 75-181-75-75-181 75-181 181-75 181 75 75 181z"
+                          fill="#fff"></path>
+                </svg>
+            </td>
+            <td rowspan="2" style="padding: 0">
+                <strong><span style="font-size: 2rem" id="post_total">0</span></strong>
+            </td>
+        </tr>
+    </table>
+</div>
+
+{# Keep the variable names unique, so they don't conflict with other dashboard modules... #}
+<script>
+    let postTotalDiv = document.getElementById("post_total");
+
+    function loadPostTotalInfo() {
+        let url = "{% url 'api:statistics:post_total' %}";
+        fetch(url).then(function (response) {
+            return response.json();
+        }).then(function (data) {
+            let info = data.data;
+            postTotalDiv.innerText = info.count;
+        });
+    }
+</script>

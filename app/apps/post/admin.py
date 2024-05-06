@@ -2,6 +2,13 @@ from django.utils.translation import gettext_lazy as _
 from .models import Post, PostComment, PostImage
 from django.utils.html import format_html
 from django.contrib import admin
+from .choices import PostStatus
+
+STATUS_ICON_MAP = {
+    PostStatus.PENDING: 'icon-alert.svg',
+    PostStatus.APPROVED: 'icon-yes.svg',
+    PostStatus.REJECTED: 'icon-no.svg',
+}
 
 
 class PostCommentInline(admin.TabularInline):
@@ -26,11 +33,18 @@ class PostImageInline(admin.TabularInline):
 
 
 class PostAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'category', 'created_at',)
+    list_display = ('id', 'user', 'category', 'get_status', 'created_at',)
     list_display_links = ('id', 'user',)
     search_fields = ('user__username', 'user__first_name', 'user__last_name', 'category__name',)
     list_filter = ('category',)
     inlines = (PostCommentInline, PostImageInline,)
+
+    @admin.display(description=_('Status'))
+    def get_status(self, obj):
+        return format_html(
+            f'<img src="/static/admin/img/{STATUS_ICON_MAP[obj.status]}" alt="True">'
+            f'</span>&nbsp;&nbsp;{obj.get_status_display()}'
+        )
 
 
 admin.site.register(Post, PostAdmin)

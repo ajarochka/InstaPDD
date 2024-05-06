@@ -1,6 +1,7 @@
 from apps.category.models import Category, Violator
 from django.contrib.auth import get_user_model
 # from apps.core.fields import OSMPointField
+from .choices import PostStatus
 from django.db import models
 
 UserModel = get_user_model()
@@ -11,6 +12,7 @@ class Post(models.Model):
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
     address = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField()
+    status = models.PositiveSmallIntegerField(choices=PostStatus.choices, default=PostStatus.PENDING)
     # location = OSMPointField()
     created_at = models.DateTimeField(auto_now_add=True)
 

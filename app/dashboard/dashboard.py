@@ -45,6 +45,7 @@ class CustomIndexDashboard(Dashboard):
         if not request or not request.user:
             return
         self.children.append(modules.CustomerTotal())
+        self.children.append(modules.PostTotalModule())
         self.children.append(modules.NewCustomerStatisticsModule())
         # self.children.append(modules.PostStatisticsModule())
         # If you want to switch back to default dashboard layout,
