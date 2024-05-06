@@ -10,7 +10,7 @@ class Violator(models.Model):
 
 class Category(models.Model):
     name = models.CharField(max_length=255)
-    violator = models.ForeignKey(Violator, on_delete=models.SET_NULL, null=True)
+    violator = models.ForeignKey(Violator, on_delete=models.SET_NULL, related_name='categories', null=True)
 
     def __str__(self):
         return self.name
