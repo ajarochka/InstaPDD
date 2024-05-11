@@ -10,8 +10,6 @@ import sys
 import io
 import os
 
-from aiogram.utils.formatting import Text, Bold
-
 # Configure script before using Django ORM
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, BASE_DIR)
@@ -20,10 +18,6 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'IPDD.settings')
 import django
 
 django.setup()
-
-from django.contrib.auth import get_user_model
-
-UserModel = get_user_model()
 
 from aiogram.types import ReplyKeyboardRemove, Message, CallbackQuery, InlineKeyboardButton, TelegramObject, PhotoSize
 from aiogram import Bot, Dispatcher, types, F, BaseMiddleware
@@ -34,12 +28,16 @@ from apps.category.models import Violator, Category
 from typing import Callable, Dict, Any, Awaitable
 from aiogram.filters import CommandStart, Command
 from aiogram.fsm.state import StatesGroup, State
+from aiogram.utils.formatting import Text, Bold
+from django.contrib.auth import get_user_model
 from apps.post.models import Post, PostImage
 from aiogram.fsm.context import FSMContext
+from apps.post.choices import PostStatus
 from asgiref.sync import sync_to_async
 from aiogram.enums import ParseMode
 from django.core.files import File
 from django.db.models import Count
+from enum import StrEnum
 import asyncio
 
 loop = asyncio.new_event_loop()
@@ -49,6 +47,8 @@ BOT_TOKEN = '6914435384:AAEcg8rXUMelyzEsglTidsakLvl_fC-uHNc'
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 
 dp = Dispatcher(storage=MemoryStorage())
+
+UserModel = get_user_model()
 
 commands_list = (
     ('/start', 'Start'),
@@ -77,6 +77,12 @@ ask_inline_builder.button(text='Yes', callback_data=f'callback:{YES}')
 ask_inline_builder.button(text='No', callback_data=f'callback:{NO}')
 
 
+class PostAction(StrEnum):
+    GET_PHOTO = 'get_photo'
+    UPDATE = 'update'
+    DELETE = 'delete'
+
+
 class PostForm(StatesGroup):
     violator_id = State()
     category_id = State()
@@ -91,13 +97,13 @@ class PostPageForm(StatesGroup):
 
 def try_parse_query_data(data: str):
     try:
-        ret = data.split(':')[1].strip()
+        ret = data.split(':')[-1].strip()
         return ret
     except:
         return None
 
 
-# This is a tricky middleware for processing the media group in one handler execution
+# This is a tricky middleware for processing the media group in one handler execution.
 class AlbumMiddleware(BaseMiddleware):
     """This middleware is for capturing media groups."""
     album_data: dict = {}
@@ -179,7 +185,10 @@ async def new_post_step_one(message: Message, state: FSMContext) -> None:
         violator_inline_builder.button(text=obj.name, callback_data=f'violator:{obj.id}')
     violator_inline_builder.row(InlineKeyboardButton(text='Cancel', callback_data='cancel'))
     await state.set_state(PostForm.violator_id)
-    await message.answer('Please choose the violator:', reply_markup=violator_inline_builder.as_markup())
+    await message.answer(
+        'Please choose the violator:',
+        reply_markup=violator_inline_builder.as_markup()
+    )
 
 
 @dp.callback_query(F.data.casefold() == 'start:post')
@@ -209,7 +218,10 @@ async def new_post_step_two_cb(query: CallbackQuery, state: FSMContext):
         category_inline_builder.button(text=obj.name, callback_data=f'category:{obj.id}')
     category_inline_builder.row(InlineKeyboardButton(text='Cancel', callback_data='cancel'))
     await state.set_state(PostForm.category_id)
-    await bot.edit_message_text('Please select category:', query.from_user.id, query.message.message_id)
+    await bot.edit_message_text(
+        'Please select category:',
+        query.from_user.id, query.message.message_id
+    )
     await bot.edit_message_reply_markup(
         query.from_user.id, query.message.message_id,
         reply_markup=category_inline_builder.as_markup()
@@ -225,25 +237,29 @@ async def new_post_step_three_cb(query: CallbackQuery, state: FSMContext):
     await state.update_data(category_id=data)
     await state.set_state(PostForm.photo)
     await query.answer('category selected.')
-    await bot.edit_message_text('Please send the photo, max 3 allowed:', query.from_user.id, query.message.message_id)
+    await bot.edit_message_text(
+        'Please send the photo, max 3 allowed:',
+        query.from_user.id, query.message.message_id
+    )
 
 
 @dp.message(PostForm.photo)
 async def new_post_step_four(message: Message, state: FSMContext, album: list[PhotoSize] = None):
     photos = album or [message.photo]
     if not photos:
-        await message.answer('Please send photos, max 3 allowed:')
-        return
+        return await message.answer('Please send photos, max 3 allowed:')
     photo_list = []
     for photo in photos[:3]:
-        # Each photo has 4 resolutions, the last one has best quality.
+        # Each photo has 4 resolutions, the last one has the best quality.
         photo_list.append(photo[-1])
     await state.update_data(photo=photo_list)
     if len(photo_list) > 2:
         await state.set_state(PostForm.address)
-        await bot.send_message(message.from_user.id, 'Please enter the address:')
-        return
-    await bot.send_message(message.from_user.id, 'Finish photo upload?', reply_markup=ask_inline_builder.as_markup())
+        return await bot.send_message(message.from_user.id, 'Please enter the address:')
+    await bot.send_message(
+        message.from_user.id, 'Finish photo upload?',
+        reply_markup=ask_inline_builder.as_markup()
+    )
 
 
 @dp.callback_query(F.data.casefold().startswith('callback:'), PostForm.photo)
@@ -251,8 +267,10 @@ async def new_post_step_four_cb(query: CallbackQuery, state: FSMContext):
     if try_parse_query_data(query.data) == YES:
         await query.answer('Photo uploaded.')
         await state.set_state(PostForm.address)
-        await bot.edit_message_text('Please enter the address:', query.from_user.id, query.message.message_id)
-        return
+        return await bot.edit_message_text(
+            'Please enter the address:',
+            query.from_user.id, query.message.message_id
+        )
     await bot.send_message(query.from_user.id, 'Please send more photo:')
 
 
@@ -308,8 +326,8 @@ async def posts_page_cb(query: CallbackQuery, state: FSMContext):
     async for obj in UserModel.objects.filter(username=query.from_user.username):
         user = obj
     if not user or not page or not page.isdigit():
-        return await query.answer(f'Invalid page {page}')
-    await query.answer(f'Posts page {page}')
+        return await query.answer(f'Invalid page {page}.')
+    await query.answer(f'Posts page {page}.')
     page = int(page)
     await state.update_data(page=page)
     post_inline_builder = InlineKeyboardBuilder()
@@ -321,9 +339,13 @@ async def posts_page_cb(query: CallbackQuery, state: FSMContext):
         post_inline_builder.row(InlineKeyboardButton(text=txt, callback_data=f'post:{obj.id}'))
     prev_next_btn = []
     if page > 1:
-        prev_next_btn.append(InlineKeyboardButton(text='< Prev', callback_data=f'posts_page:{page - 1}'))
+        prev_next_btn.append(InlineKeyboardButton(
+            text='< Prev', callback_data=f'posts_page:{page - 1}')
+        )
     if count > page * PAGE_SIZE:
-        prev_next_btn.append(InlineKeyboardButton(text='Next >', callback_data=f'posts_page:{page + 1}'))
+        prev_next_btn.append(InlineKeyboardButton(
+            text='Next >', callback_data=f'posts_page:{page + 1}')
+        )
     post_inline_builder.row(*prev_next_btn)
     await bot.edit_message_text(
         'Your posts:', query.from_user.id, query.message.message_id,
@@ -338,8 +360,8 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
     async for obj in UserModel.objects.filter(username=query.from_user.username):
         user = obj
     if not user or not post_id or not post_id.isdigit():
-        return await query.answer(f'Invalid post id {post_id}')
-    await query.answer('Post details')
+        return await query.answer(f'Invalid post id {post_id}.')
+    await query.answer('Post details.')
     data = await state.get_data()
     page = data.get('page', 1)
     post_inline_builder = InlineKeyboardBuilder()
@@ -350,9 +372,55 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
         Bold('Creation date'), ': ', post.created_at.strftime("%d-%m-%Y %H:%M"), '\n',
         Bold('Status'), ': ', post.get_status_display()
     )
-    post_inline_builder.row(InlineKeyboardButton(text='< Back to list', callback_data=f'posts_page:{page}'))
+    photos_qs = await sync_to_async(PostImage.objects.filter)(post_id=post_id)
+    photo_count = await sync_to_async(photos_qs.count)()
+    post_controls = [InlineKeyboardButton(
+        text=f'See photo ({photo_count})',
+        callback_data=f'post_action:{PostAction.GET_PHOTO}:{post_id}'
+    )]
+    if post.status < PostStatus.APPROVED:
+        post_controls.append(InlineKeyboardButton(
+            text='Update post', callback_data=f'post_action:{PostAction.UPDATE}:{post_id}')
+        )
+        post_controls.append(InlineKeyboardButton(
+            text='Delete post', callback_data=f'post_action:{PostAction.DELETE}:{post_id}')
+        )
+    post_inline_builder.row(*post_controls)
+    post_inline_builder.row(InlineKeyboardButton(
+        text='< Back to list', callback_data=f'posts_page:{page}')
+    )
     await bot.edit_message_text(
         txt.as_html(), query.from_user.id, query.message.message_id,
+        reply_markup=post_inline_builder.as_markup()
+    )
+
+
+@dp.callback_query(F.data.casefold().startswith(f'post_action:{PostAction.GET_PHOTO}'), PostPageForm.page)
+async def post_photo_cb(query: CallbackQuery, state: FSMContext):
+    # TODO: send postphotos.
+    await query.answer('Post photos.')
+
+
+@dp.callback_query(F.data.casefold().startswith(f'post_action:{PostAction.UPDATE}'), PostPageForm.page)
+async def post_photo_cb(query: CallbackQuery, state: FSMContext):
+    # TODO: update post.
+    await query.answer('Post updated.')
+
+
+@dp.callback_query(F.data.casefold().startswith(f'post_action:{PostAction.DELETE}'), PostPageForm.page)
+async def post_delete_cb(query: CallbackQuery, state: FSMContext):
+    post_id = try_parse_query_data(query.data)
+    post = await sync_to_async(Post.objects.get)(id=post_id)
+    await sync_to_async(post.delete)()
+    await query.answer('Post deleted.')
+    post_inline_builder = InlineKeyboardBuilder()
+    data = await state.get_data()
+    page = data.get("page", 1)
+    post_inline_builder.row(InlineKeyboardButton(
+        text='< Back to list', callback_data=f'posts_page:{page}')
+    )
+    await bot.edit_message_text(
+        'Deleted post', query.from_user.id, query.message.message_id,
         reply_markup=post_inline_builder.as_markup()
     )
 
