@@ -10,6 +10,8 @@ import sys
 import io
 import os
 
+from aiogram.utils.formatting import Text, Bold
+
 # Configure script before using Django ORM
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, BASE_DIR)
@@ -61,11 +63,11 @@ commands = [types.BotCommand(command=com[0], description=com[1]) for com in comm
 HELP_MESSAGE = '''
 Use /new_post command to create post
 Follow the steps to fill the information
-All dields are mandatory,
+All fields are mandatory,
 Please fill the information carefully.
 '''
 
-PAGE_SIZE = 10
+PAGE_SIZE = 3
 YES = 'yes'
 NO = 'no'
 
@@ -81,6 +83,10 @@ class PostForm(StatesGroup):
     photo = State()
     address = State()
     description = State()
+
+
+class PostPageForm(StatesGroup):
+    page = State()
 
 
 def try_parse_query_data(data: str):
@@ -119,7 +125,8 @@ class AlbumMiddleware(BaseMiddleware):
 
 
 @dp.message(CommandStart())
-async def start_cmd_handler(message: types.Message):
+async def start_cmd_handler(message: types.Message, state: FSMContext):
+    await state.clear()
     start_inline_builder = InlineKeyboardBuilder()
     start_inline_builder.adjust(2)
     start_inline_builder.button(text='Create new post', callback_data=f'start:post')
@@ -165,9 +172,9 @@ async def help_cb_handler(query: CallbackQuery, state: FSMContext):
 
 @dp.message(Command('new_post'))
 async def new_post_step_one(message: Message, state: FSMContext) -> None:
+    await state.clear()
     violator_inline_builder = InlineKeyboardBuilder()
     violator_inline_builder.adjust(3)
-    await state.clear()
     async for obj in Violator.objects.annotate(count=Count('categories')).filter(count__gt=0):
         violator_inline_builder.button(text=obj.name, callback_data=f'violator:{obj.id}')
     violator_inline_builder.row(InlineKeyboardButton(text='Cancel', callback_data='cancel'))
@@ -177,9 +184,9 @@ async def new_post_step_one(message: Message, state: FSMContext) -> None:
 
 @dp.callback_query(F.data.casefold() == 'start:post')
 async def new_post_step_one_cb(query: CallbackQuery, state: FSMContext):
+    await state.clear()
     violator_inline_builder = InlineKeyboardBuilder()
     violator_inline_builder.adjust(3)
-    await state.clear()
     async for obj in Violator.objects.annotate(count=Count('categories')).filter(count__gt=0):
         violator_inline_builder.button(text=obj.name, callback_data=f'violator:{obj.id}')
     violator_inline_builder.row(InlineKeyboardButton(text='Cancel', callback_data='cancel'))
@@ -274,6 +281,8 @@ async def new_post_step_six(message: Message, state: FSMContext):
 
 @dp.message(Command('my_posts'))
 async def my_posts(message: Message, state: FSMContext) -> None:
+    await state.clear()
+    await state.set_state(PostPageForm.page)
     user = None
     async for obj in UserModel.objects.filter(username=message.from_user.username):
         user = obj
@@ -289,10 +298,10 @@ async def my_posts(message: Message, state: FSMContext) -> None:
         post_inline_builder.row(InlineKeyboardButton(text=txt, callback_data=f'post:{obj.id}'))
     if count > PAGE_SIZE:
         post_inline_builder.row(InlineKeyboardButton(text='Next >', callback_data='posts_page:2'))
-    await message.answer('Your posts', reply_markup=post_inline_builder.as_markup())
+    await message.answer('Your posts:', reply_markup=post_inline_builder.as_markup())
 
 
-@dp.callback_query(F.data.casefold().startswith('posts_page:'))
+@dp.callback_query(F.data.casefold().startswith('posts_page:'), PostPageForm.page)
 async def posts_page_cb(query: CallbackQuery, state: FSMContext):
     user = None
     page = try_parse_query_data(query.data)
@@ -302,6 +311,7 @@ async def posts_page_cb(query: CallbackQuery, state: FSMContext):
         return await query.answer(f'Invalid page {page}')
     await query.answer(f'Posts page {page}')
     page = int(page)
+    await state.update_data(page=page)
     post_inline_builder = InlineKeyboardBuilder()
     queryset = await sync_to_async(Post.objects.filter)(user=user)
     count = await sync_to_async(queryset.count)()
@@ -315,20 +325,36 @@ async def posts_page_cb(query: CallbackQuery, state: FSMContext):
     if count > page * PAGE_SIZE:
         prev_next_btn.append(InlineKeyboardButton(text='Next >', callback_data=f'posts_page:{page + 1}'))
     post_inline_builder.row(*prev_next_btn)
-    await bot.edit_message_reply_markup(
-        query.from_user.id, query.message.message_id,
+    await bot.edit_message_text(
+        'Your posts:', query.from_user.id, query.message.message_id,
         reply_markup=post_inline_builder.as_markup()
     )
 
 
-@dp.callback_query(F.data.casefold().startswith('post:'))
+@dp.callback_query(F.data.casefold().startswith('post:'), PostPageForm.page)
 async def post_info_cb(query: CallbackQuery, state: FSMContext):
-    # TODO: return post information and available commands.
-    await query.answer('Post')
-
-
-async def bot_send_message(chat_id, message):
-    await bot.send_message(chat_id, message, parse_mode=ParseMode.MARKDOWN)
+    user = None
+    post_id = try_parse_query_data(query.data)
+    async for obj in UserModel.objects.filter(username=query.from_user.username):
+        user = obj
+    if not user or not post_id or not post_id.isdigit():
+        return await query.answer(f'Invalid post id {post_id}')
+    await query.answer('Post details')
+    data = await state.get_data()
+    page = data.get('page', 1)
+    post_inline_builder = InlineKeyboardBuilder()
+    post = await sync_to_async(Post.objects.get)(id=post_id)
+    ctg = await sync_to_async(Category.objects.get)(id=post.category_id)
+    txt = Text(
+        Bold('Category'), ': ', ctg.name, '\n',
+        Bold('Creation date'), ': ', post.created_at.strftime("%d-%m-%Y %H:%M"), '\n',
+        Bold('Status'), ': ', post.get_status_display()
+    )
+    post_inline_builder.row(InlineKeyboardButton(text='< Back to list', callback_data=f'posts_page:{page}'))
+    await bot.edit_message_text(
+        txt.as_html(), query.from_user.id, query.message.message_id,
+        reply_markup=post_inline_builder.as_markup()
+    )
 
 
 async def main() -> None:
