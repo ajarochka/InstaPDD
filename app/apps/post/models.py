@@ -8,7 +8,7 @@ UserModel = get_user_model()
 
 
 class Post(models.Model):
-    user = models.ForeignKey(UserModel, on_delete=models.SET_NULL, null=True)
+    user = models.ForeignKey(UserModel, on_delete=models.SET_NULL, related_name='posts', null=True)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
     address = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField()

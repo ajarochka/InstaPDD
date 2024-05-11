@@ -52,6 +52,7 @@ commands_list = (
     ('/start', 'Start'),
     ('/help', 'Help'),
     ('/new_post', 'Create new post'),
+    ('/my_posts', 'My posts'),
     ('/cancel', 'Cancel'),
 )
 
@@ -64,6 +65,7 @@ All dields are mandatory,
 Please fill the information carefully.
 '''
 
+PAGE_SIZE = 10
 YES = 'yes'
 NO = 'no'
 
@@ -82,8 +84,11 @@ class PostForm(StatesGroup):
 
 
 def try_parse_query_data(data: str):
-    ret = data.split(':')[1].strip()
-    return ret
+    try:
+        ret = data.split(':')[1].strip()
+        return ret
+    except:
+        return None
 
 
 # This is a tricky middleware for processing the media group in one handler execution
@@ -171,7 +176,7 @@ async def new_post_step_one(message: Message, state: FSMContext) -> None:
 
 
 @dp.callback_query(F.data.casefold() == 'start:post')
-async def post_cb_handler(query: CallbackQuery, state: FSMContext):
+async def new_post_step_one_cb(query: CallbackQuery, state: FSMContext):
     violator_inline_builder = InlineKeyboardBuilder()
     violator_inline_builder.adjust(3)
     await state.clear()
@@ -187,8 +192,10 @@ async def post_cb_handler(query: CallbackQuery, state: FSMContext):
 
 
 @dp.callback_query(F.data.casefold().startswith('violator:'), PostForm.violator_id)
-async def violator_cb_handler(query: CallbackQuery, state: FSMContext):
+async def new_post_step_two_cb(query: CallbackQuery, state: FSMContext):
     data = try_parse_query_data(query.data)
+    if not data:
+        return
     category_inline_builder = InlineKeyboardBuilder()
     category_inline_builder.adjust(3)
     async for obj in Category.objects.filter(violator_id=data):
@@ -204,8 +211,10 @@ async def violator_cb_handler(query: CallbackQuery, state: FSMContext):
 
 
 @dp.callback_query(F.data.casefold().startswith('category:'), PostForm.category_id)
-async def category_cb_handler(query: CallbackQuery, state: FSMContext):
+async def new_post_step_three_cb(query: CallbackQuery, state: FSMContext):
     data = try_parse_query_data(query.data)
+    if not data:
+        return
     await state.update_data(category_id=data)
     await state.set_state(PostForm.photo)
     await query.answer('category selected.')
@@ -213,7 +222,7 @@ async def category_cb_handler(query: CallbackQuery, state: FSMContext):
 
 
 @dp.message(PostForm.photo)
-async def new_post_step_two(message: Message, state: FSMContext, album: list[PhotoSize] = None):
+async def new_post_step_four(message: Message, state: FSMContext, album: list[PhotoSize] = None):
     photos = album or [message.photo]
     if not photos:
         await message.answer('Please send photos, max 3 allowed:')
@@ -231,30 +240,27 @@ async def new_post_step_two(message: Message, state: FSMContext, album: list[Pho
 
 
 @dp.callback_query(F.data.casefold().startswith('callback:'), PostForm.photo)
-async def category_cb_handler(query: CallbackQuery, state: FSMContext):
+async def new_post_step_four_cb(query: CallbackQuery, state: FSMContext):
     if try_parse_query_data(query.data) == YES:
         await query.answer('Photo uploaded.')
         await state.set_state(PostForm.address)
-        await bot.send_message(query.from_user.id, 'Please enter the address:')
+        await bot.edit_message_text('Please enter the address:', query.from_user.id, query.message.message_id)
         return
     await bot.send_message(query.from_user.id, 'Please send more photo:')
 
 
 @dp.message(PostForm.address)
-async def new_post_step_two(message: Message, state: FSMContext):
+async def new_post_step_five(message: Message, state: FSMContext):
     await state.update_data(address=message.text)
     await state.set_state(PostForm.description)
     await bot.send_message(message.from_user.id, 'Please enter the description:')
 
 
 @dp.message(PostForm.description)
-async def new_post_step_two(message: Message, state: FSMContext):
+async def new_post_step_six(message: Message, state: FSMContext):
     await state.update_data(description=message.text)
     data = await state.get_data()
-    # TODO: improve code quality, user sync_to_async fr filter.
-    user = None
-    async for obj in UserModel.objects.filter(username__iexact='telegram'):
-        user = obj
+    user, _ = await sync_to_async(UserModel.objects.get_or_create)(username=message.from_user.username)
     photos = data.pop('photo')
     post = await sync_to_async(Post.objects.create)(user=user, **data)
     for photo in photos:
@@ -264,6 +270,61 @@ async def new_post_step_two(message: Message, state: FSMContext):
     await state.clear()
     msg = 'Thanks for your message, the request will be reviewed and we will return to you!'
     await message.answer(msg, reply_markup=ReplyKeyboardRemove())
+
+
+@dp.message(Command('my_posts'))
+async def my_posts(message: Message, state: FSMContext) -> None:
+    user = None
+    async for obj in UserModel.objects.filter(username=message.from_user.username):
+        user = obj
+    if not user:
+        await message.answer('You do not posted anything yet.')
+        return
+    post_inline_builder = InlineKeyboardBuilder()
+    queryset = await sync_to_async(Post.objects.filter)(user=user)
+    count = await sync_to_async(queryset.count)()
+    async for obj in queryset.order_by('-created_at')[:PAGE_SIZE]:
+        ctg = await sync_to_async(Category.objects.get)(id=obj.category_id)
+        txt = f'{ctg.name} | {obj.created_at.strftime("%d-%m-%Y %H:%M")} | {obj.get_status_display()}'
+        post_inline_builder.row(InlineKeyboardButton(text=txt, callback_data=f'post:{obj.id}'))
+    if count > PAGE_SIZE:
+        post_inline_builder.row(InlineKeyboardButton(text='Next >', callback_data='posts_page:2'))
+    await message.answer('Your posts', reply_markup=post_inline_builder.as_markup())
+
+
+@dp.callback_query(F.data.casefold().startswith('posts_page:'))
+async def posts_page_cb(query: CallbackQuery, state: FSMContext):
+    user = None
+    page = try_parse_query_data(query.data)
+    async for obj in UserModel.objects.filter(username=query.from_user.username):
+        user = obj
+    if not user or not page or not page.isdigit():
+        return await query.answer(f'Invalid page {page}')
+    await query.answer(f'Posts page {page}')
+    page = int(page)
+    post_inline_builder = InlineKeyboardBuilder()
+    queryset = await sync_to_async(Post.objects.filter)(user=user)
+    count = await sync_to_async(queryset.count)()
+    async for obj in queryset.order_by('-created_at')[(page - 1) * PAGE_SIZE:page * PAGE_SIZE]:
+        ctg = await sync_to_async(Category.objects.get)(id=obj.category_id)
+        txt = f'{ctg.name} | {obj.created_at.strftime("%d-%m-%Y %H:%M")} | {obj.get_status_display()}'
+        post_inline_builder.row(InlineKeyboardButton(text=txt, callback_data=f'post:{obj.id}'))
+    prev_next_btn = []
+    if page > 1:
+        prev_next_btn.append(InlineKeyboardButton(text='< Prev', callback_data=f'posts_page:{page - 1}'))
+    if count > page * PAGE_SIZE:
+        prev_next_btn.append(InlineKeyboardButton(text='Next >', callback_data=f'posts_page:{page + 1}'))
+    post_inline_builder.row(*prev_next_btn)
+    await bot.edit_message_reply_markup(
+        query.from_user.id, query.message.message_id,
+        reply_markup=post_inline_builder.as_markup()
+    )
+
+
+@dp.callback_query(F.data.casefold().startswith('post:'))
+async def post_info_cb(query: CallbackQuery, state: FSMContext):
+    # TODO: return post information and available commands.
+    await query.answer('Post')
 
 
 async def bot_send_message(chat_id, message):
