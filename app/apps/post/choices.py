@@ -4,5 +4,5 @@ from django.db import models
 
 class PostStatus(models.IntegerChoices):
     PENDING = 1, _('Pending')
-    APPROVED = 2, _('Approved')
-    REJECTED = 3, _('Rejected')
+    REJECTED = 2, _('Rejected')
+    APPROVED = 3, _('Approved')

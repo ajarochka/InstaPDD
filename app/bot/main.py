@@ -19,7 +19,6 @@ import django
 
 django.setup()
 
-from aiogram.types import ReplyKeyboardRemove, Message, CallbackQuery, InlineKeyboardButton, TelegramObject, PhotoSize
 from aiogram import Bot, Dispatcher, types, F, BaseMiddleware
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.client.default import DefaultBotProperties
@@ -39,6 +38,15 @@ from django.core.files import File
 from django.db.models import Count
 from enum import StrEnum
 import asyncio
+from aiogram.types import (
+    InlineKeyboardButton,
+    ReplyKeyboardRemove,
+    TelegramObject,
+    CallbackQuery,
+    FSInputFile,
+    PhotoSize,
+    Message
+)
 
 loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
@@ -71,14 +79,9 @@ PAGE_SIZE = 3
 YES = 'yes'
 NO = 'no'
 
-ask_inline_builder = InlineKeyboardBuilder()
-ask_inline_builder.adjust(2)
-ask_inline_builder.button(text='Yes', callback_data=f'callback:{YES}')
-ask_inline_builder.button(text='No', callback_data=f'callback:{NO}')
-
 
 class PostAction(StrEnum):
-    GET_PHOTO = 'get_photo'
+    GET_FULL_DESCRIPTION = 'get_description'
     UPDATE = 'update'
     DELETE = 'delete'
 
@@ -95,9 +98,22 @@ class PostPageForm(StatesGroup):
     page = State()
 
 
+STATE_TEXT_MAP = {
+    PostForm.violator_id: 'New post',
+    PostForm.category_id: 'New post',
+    PostForm.photo: 'New post',
+    PostForm.address: 'New post',
+    PostForm.description: 'New post',
+    PostPageForm.page: 'Post list',
+}
+
+
 def try_parse_query_data(data: str):
     try:
-        ret = data.split(':')[-1].strip()
+        data = data.split(':')
+        ret = {}
+        for i in range(0, len(data), 2):
+            ret[data[i]] = data[i + 1]
         return ret
     except:
         return None
@@ -147,7 +163,7 @@ async def cancel_handler(message: Message, state: FSMContext) -> None:
     if current_state is None:
         return
     await state.clear()
-    msg = 'Cancelling state %r' % current_state
+    msg = 'Cancelled state: %s' % STATE_TEXT_MAP[current_state]
     await message.answer(msg, reply_markup=ReplyKeyboardRemove())
 
 
@@ -157,7 +173,7 @@ async def cancel_cb_handler(query: CallbackQuery, state: FSMContext):
     if current_state is None:
         return
     await state.clear()
-    msg = 'Cancelling state %r' % current_state
+    msg = 'Cancelled state: %s' % STATE_TEXT_MAP[current_state]
     await query.answer('Canceled.')
     await bot.delete_message(query.from_user.id, query.message.message_id)
     await bot.send_message(query.from_user.id, msg, reply_markup=ReplyKeyboardRemove())
@@ -193,18 +209,8 @@ async def new_post_step_one(message: Message, state: FSMContext) -> None:
 
 @dp.callback_query(F.data.casefold() == 'start:post')
 async def new_post_step_one_cb(query: CallbackQuery, state: FSMContext):
-    await state.clear()
-    violator_inline_builder = InlineKeyboardBuilder()
-    violator_inline_builder.adjust(3)
-    async for obj in Violator.objects.annotate(count=Count('categories')).filter(count__gt=0):
-        violator_inline_builder.button(text=obj.name, callback_data=f'violator:{obj.id}')
-    violator_inline_builder.row(InlineKeyboardButton(text='Cancel', callback_data='cancel'))
-    await state.set_state(PostForm.violator_id)
     await query.answer('New post.')
-    await bot.send_message(
-        query.from_user.id, 'Please choose the violator:',
-        reply_markup=violator_inline_builder.as_markup()
-    )
+    return await new_post_step_one(query.message, state)
 
 
 @dp.callback_query(F.data.casefold().startswith('violator:'), PostForm.violator_id)
@@ -214,7 +220,7 @@ async def new_post_step_two_cb(query: CallbackQuery, state: FSMContext):
         return
     category_inline_builder = InlineKeyboardBuilder()
     category_inline_builder.adjust(3)
-    async for obj in Category.objects.filter(violator_id=data):
+    async for obj in Category.objects.filter(violator_id=data.get('violator')):
         category_inline_builder.button(text=obj.name, callback_data=f'category:{obj.id}')
     category_inline_builder.row(InlineKeyboardButton(text='Cancel', callback_data='cancel'))
     await state.set_state(PostForm.category_id)
@@ -234,7 +240,7 @@ async def new_post_step_three_cb(query: CallbackQuery, state: FSMContext):
     data = try_parse_query_data(query.data)
     if not data:
         return
-    await state.update_data(category_id=data)
+    await state.update_data(category_id=data.get('category'))
     await state.set_state(PostForm.photo)
     await query.answer('category selected.')
     await bot.edit_message_text(
@@ -249,6 +255,10 @@ async def new_post_step_four(message: Message, state: FSMContext, album: list[Ph
     if not photos:
         return await message.answer('Please send photos, max 3 allowed:')
     photo_list = []
+    ask_inline_builder = InlineKeyboardBuilder()
+    ask_inline_builder.adjust(2)
+    ask_inline_builder.button(text='Yes', callback_data=f'finish:{YES}')
+    ask_inline_builder.button(text='No', callback_data=f'finish:{NO}')
     for photo in photos[:3]:
         # Each photo has 4 resolutions, the last one has the best quality.
         photo_list.append(photo[-1])
@@ -262,9 +272,10 @@ async def new_post_step_four(message: Message, state: FSMContext, album: list[Ph
     )
 
 
-@dp.callback_query(F.data.casefold().startswith('callback:'), PostForm.photo)
+@dp.callback_query(F.data.casefold().startswith('finish:'), PostForm.photo)
 async def new_post_step_four_cb(query: CallbackQuery, state: FSMContext):
-    if try_parse_query_data(query.data) == YES:
+    data = try_parse_query_data(query.data)
+    if data.get('finish') == YES:
         await query.answer('Photo uploaded.')
         await state.set_state(PostForm.address)
         return await bot.edit_message_text(
@@ -291,7 +302,9 @@ async def new_post_step_six(message: Message, state: FSMContext):
     for photo in photos:
         fp = io.BytesIO()
         await bot.download(photo.file_id, fp)
-        await sync_to_async(PostImage.objects.create)(post=post, file=File(fp, photo.file_unique_id))
+        await sync_to_async(PostImage.objects.create)(
+            post=post, file=File(fp, photo.file_unique_id), file_id=photo.file_id
+        )
     await state.clear()
     msg = 'Thanks for your message, the request will be reviewed and we will return to you!'
     await message.answer(msg, reply_markup=ReplyKeyboardRemove())
@@ -322,7 +335,8 @@ async def my_posts(message: Message, state: FSMContext) -> None:
 @dp.callback_query(F.data.casefold().startswith('posts_page:'), PostPageForm.page)
 async def posts_page_cb(query: CallbackQuery, state: FSMContext):
     user = None
-    page = try_parse_query_data(query.data)
+    data = try_parse_query_data(query.data)
+    page = data.get('posts_page')
     async for obj in UserModel.objects.filter(username=query.from_user.username):
         user = obj
     if not user or not page or not page.isdigit():
@@ -347,8 +361,9 @@ async def posts_page_cb(query: CallbackQuery, state: FSMContext):
             text='Next >', callback_data=f'posts_page:{page + 1}')
         )
     post_inline_builder.row(*prev_next_btn)
-    await bot.edit_message_text(
-        'Your posts:', query.from_user.id, query.message.message_id,
+    await bot.delete_message(query.from_user.id, query.message.message_id)
+    await bot.send_message(
+        query.from_user.id, 'Your posts:',
         reply_markup=post_inline_builder.as_markup()
     )
 
@@ -356,7 +371,9 @@ async def posts_page_cb(query: CallbackQuery, state: FSMContext):
 @dp.callback_query(F.data.casefold().startswith('post:'), PostPageForm.page)
 async def post_info_cb(query: CallbackQuery, state: FSMContext):
     user = None
-    post_id = try_parse_query_data(query.data)
+    data = try_parse_query_data(query.data)
+    post_id = data.get('post')
+    photo_num = int(data.get('photo_num', 0))
     async for obj in UserModel.objects.filter(username=query.from_user.username):
         user = obj
     if not user or not post_id or not post_id.isdigit():
@@ -367,38 +384,53 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
     post_inline_builder = InlineKeyboardBuilder()
     post = await sync_to_async(Post.objects.get)(id=post_id)
     ctg = await sync_to_async(Category.objects.get)(id=post.category_id)
-    txt = Text(
-        Bold('Category'), ': ', ctg.name, '\n',
-        Bold('Creation date'), ': ', post.created_at.strftime("%d-%m-%Y %H:%M"), '\n',
-        Bold('Status'), ': ', post.get_status_display()
-    )
-    photos_qs = await sync_to_async(PostImage.objects.filter)(post_id=post_id)
-    photo_count = await sync_to_async(photos_qs.count)()
-    post_controls = [InlineKeyboardButton(
-        text=f'See photo ({photo_count})',
-        callback_data=f'post_action:{PostAction.GET_PHOTO}:{post_id}'
-    )]
-    if post.status < PostStatus.APPROVED:
+    queryset = await sync_to_async(PostImage.objects.filter)(post_id=post_id)
+    photo_count = await sync_to_async(queryset.count)()
+    photo = None
+    if photo_count > photo_num:
+        photos = await sync_to_async(list)(queryset)
+        photo = photos[photo_num]
+    post_controls = []
+    if post.status < PostStatus.REJECTED:
         post_controls.append(InlineKeyboardButton(
             text='Update post', callback_data=f'post_action:{PostAction.UPDATE}:{post_id}')
         )
+    if post.status < PostStatus.APPROVED:
         post_controls.append(InlineKeyboardButton(
             text='Delete post', callback_data=f'post_action:{PostAction.DELETE}:{post_id}')
+        )
+    if photo_count > 1:
+        num = (photo_num + 1) % photo_count
+        post_controls.append(InlineKeyboardButton(
+            text='Next photo >', callback_data=f'post:{post_id}:photo_num:{num}')
         )
     post_inline_builder.row(*post_controls)
     post_inline_builder.row(InlineKeyboardButton(
         text='< Back to list', callback_data=f'posts_page:{page}')
     )
-    await bot.edit_message_text(
-        txt.as_html(), query.from_user.id, query.message.message_id,
-        reply_markup=post_inline_builder.as_markup()
+    txt = Text(
+        Bold('Category'), ': ', ctg.name, '\n',
+        Bold('Creation date'), ': ', post.created_at.strftime("%d-%m-%Y %H:%M"), '\n',
+        Bold('Status'), ': ', post.get_status_display(), '\n',
+        Bold('Address'), ': ', post.address, '\n',
+        Bold('Description'), ': ', post.description
     )
-
-
-@dp.callback_query(F.data.casefold().startswith(f'post_action:{PostAction.GET_PHOTO}'), PostPageForm.page)
-async def post_photo_cb(query: CallbackQuery, state: FSMContext):
-    # TODO: send postphotos.
-    await query.answer('Post photos.')
+    await bot.delete_message(query.from_user.id, query.message.message_id)
+    # TODO: check if Telegram has the file for "file_id"
+    if photo:
+        media = photo.file_id if photo.file_id else FSInputFile(photo.file.path)
+        msg = await bot.send_photo(
+            query.from_user.id, media, caption=txt.as_html(),
+            reply_markup=post_inline_builder.as_markup()
+        )
+        if not photo.file_id:
+            photo.file_id = msg.photo[-1].file_id
+            await sync_to_async(photo.save)()
+    else:
+        await bot.send_message(
+            query.from_user.id, txt.as_html(),
+            reply_markup=post_inline_builder.as_markup()
+        )
 
 
 @dp.callback_query(F.data.casefold().startswith(f'post_action:{PostAction.UPDATE}'), PostPageForm.page)

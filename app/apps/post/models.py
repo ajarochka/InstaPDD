@@ -10,8 +10,8 @@ UserModel = get_user_model()
 class Post(models.Model):
     user = models.ForeignKey(UserModel, on_delete=models.SET_NULL, related_name='posts', null=True)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
-    address = models.CharField(max_length=255, blank=True, null=True)
-    description = models.TextField()
+    address = models.CharField(max_length=128, blank=True, null=True)
+    description = models.TextField(max_length=800)
     status = models.PositiveSmallIntegerField(choices=PostStatus.choices, default=PostStatus.PENDING)
     # location = OSMPointField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -26,6 +26,7 @@ class Post(models.Model):
 class PostImage(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
     file = models.ImageField(upload_to='photos/%Y/%m/%d')
+    file_id = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
 
