@@ -1,6 +1,7 @@
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
-from rest_framework import status as http_status, exceptions, permissions
+from rest_framework import status as http_status, permissions, exceptions
 from rest_framework.pagination import PageNumberPagination
+from apps.authentication.models import CustomToken
 from rest_framework.renderers import BaseRenderer
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
@@ -10,19 +11,20 @@ from django.conf import settings
 from datetime import timedelta
 
 
-class CustomRepresentation:
-    """Duplicates the Snake case writen fields to the Pascal case style"""
+# Import from models.py is not recommended
+class CustomTokenAuthentication(TokenAuthentication):
+    keyword = 'Bearer'
+    model = CustomToken
 
-    def to_representation(self, instance):
-        ret = super().to_representation(instance)
-        new_data = {}
-        for key, value in ret.items():
-            new_key = key.split('_')
-            if len(new_key) > 1:
-                new_key = ''.join([word.capitalize() for word in new_key])
-                new_data[new_key] = value
-        ret.update(new_data)
-        return ret
+    def authenticate_credentials(self, key):
+        user, token = super().authenticate_credentials(key)
+        if token.expires_at:
+            if token.expires_at < timezone.now():
+                raise exceptions.AuthenticationFailed('Token has expired')
+            # If token is in use, move the expiration date forward...
+            token.expires_at = timezone.now() + timedelta(seconds=settings.TOKEN_TTL)
+            token.save(update_fields=('expires_at',))
+        return token.user, token
 
 
 class CustomDjangoModelPermissions(permissions.DjangoModelPermissions):
@@ -213,18 +215,3 @@ class ZipRenderer(BaseRenderer):
 
     def render(self, data, media_type=None, renderer_context=None):
         return data
-
-# class CustomListApiView(generics.ListAPIView):
-#     def get_queryset(self):
-#         return self.filter_queryset(super().get_queryset())
-#
-#     def list(self, request, *args, **kwargs):
-#         queryset = self.get_queryset()
-#
-#         page = self.paginate_queryset(queryset)
-#         if page is not None:
-#             serializer = self.get_serializer(page, many=True)
-#             return self.get_paginated_response(serializer.data)
-#
-#         serializer = self.get_serializer(queryset, many=True)
-#         return Response(serializer.data)

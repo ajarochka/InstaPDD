@@ -10,6 +10,8 @@ import sys
 import io
 import os
 
+from django.contrib.gis.geos import Point
+
 # Configure script before using Django ORM
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, BASE_DIR)
@@ -81,7 +83,6 @@ NO = 'no'
 
 
 class PostAction(StrEnum):
-    GET_FULL_DESCRIPTION = 'get_description'
     UPDATE = 'update'
     DELETE = 'delete'
 
@@ -89,6 +90,7 @@ class PostAction(StrEnum):
 class PostForm(StatesGroup):
     violator_id = State()
     category_id = State()
+    location = State()
     photo = State()
     address = State()
     description = State()
@@ -241,16 +243,40 @@ async def new_post_step_three_cb(query: CallbackQuery, state: FSMContext):
     if not data:
         return
     await state.update_data(category_id=data.get('category'))
-    await state.set_state(PostForm.photo)
     await query.answer('category selected.')
+    await state.set_state(PostForm.location)
+    ask_inline_builder = InlineKeyboardBuilder()
+    ask_inline_builder.button(text='Skip this step', callback_data=f'finish:{YES}')
     await bot.edit_message_text(
-        'Please send the photo, max 3 allowed:',
-        query.from_user.id, query.message.message_id
+        'Please send the location:', query.from_user.id,
+        query.message.message_id, reply_markup=ask_inline_builder.as_markup()
     )
 
 
+@dp.message(PostForm.location)
+async def new_post_step_four_cb(message: Message, state: FSMContext):
+    if not message.location:
+        return await message.answer('Please send the location:')
+    await state.update_data(location=message.location)
+    await state.set_state(PostForm.photo)
+    await message.answer('Please send photos, max 3 allowed:')
+
+
+@dp.callback_query(F.data.casefold().startswith('finish:'), PostForm.location)
+async def new_post_step_five_cb(query: CallbackQuery, state: FSMContext):
+    data = try_parse_query_data(query.data)
+    if data.get('finish') == YES:
+        await query.answer('Location skipped.')
+        await state.set_state(PostForm.photo)
+        return await bot.edit_message_text(
+            'Please send photos, max 3 allowed:',
+            query.from_user.id, query.message.message_id
+        )
+    await bot.send_message(query.from_user.id, 'Please send the location:')
+
+
 @dp.message(PostForm.photo)
-async def new_post_step_four(message: Message, state: FSMContext, album: list[PhotoSize] = None):
+async def new_post_step_five(message: Message, state: FSMContext, album: list[PhotoSize] = None):
     photos = album or [message.photo]
     if not photos:
         return await message.answer('Please send photos, max 3 allowed:')
@@ -273,7 +299,7 @@ async def new_post_step_four(message: Message, state: FSMContext, album: list[Ph
 
 
 @dp.callback_query(F.data.casefold().startswith('finish:'), PostForm.photo)
-async def new_post_step_four_cb(query: CallbackQuery, state: FSMContext):
+async def new_post_step_five_cb(query: CallbackQuery, state: FSMContext):
     data = try_parse_query_data(query.data)
     if data.get('finish') == YES:
         await query.answer('Photo uploaded.')
@@ -286,18 +312,20 @@ async def new_post_step_four_cb(query: CallbackQuery, state: FSMContext):
 
 
 @dp.message(PostForm.address)
-async def new_post_step_five(message: Message, state: FSMContext):
+async def new_post_step_six(message: Message, state: FSMContext):
     await state.update_data(address=message.text)
     await state.set_state(PostForm.description)
     await bot.send_message(message.from_user.id, 'Please enter the description:')
 
 
 @dp.message(PostForm.description)
-async def new_post_step_six(message: Message, state: FSMContext):
+async def new_post_step_seven(message: Message, state: FSMContext):
     await state.update_data(description=message.text)
     data = await state.get_data()
     user, _ = await sync_to_async(UserModel.objects.get_or_create)(username=message.from_user.username)
     photos = data.pop('photo')
+    location = data.pop('location', None)
+    data['location'] = Point(x=location.longitude, y=location.latitude)
     post = await sync_to_async(Post.objects.create)(user=user, **data)
     for photo in photos:
         fp = io.BytesIO()
@@ -412,6 +440,7 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
         Bold('Category'), ': ', ctg.name, '\n',
         Bold('Creation date'), ': ', post.created_at.strftime("%d-%m-%Y %H:%M"), '\n',
         Bold('Status'), ': ', post.get_status_display(), '\n',
+        Bold('Location'), ': ', post.location.x, post.location.y, '\n',
         Bold('Address'), ': ', post.address, '\n',
         Bold('Description'), ': ', post.description
     )

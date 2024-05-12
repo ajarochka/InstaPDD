@@ -33,6 +33,8 @@ INSTALLED_APPS = [
     # Django-Jet
     'jet.dashboard',
     'jet',
+    # Leaflet
+    'leaflet',
     # Django apps
     'django.contrib.admin',
     'django.contrib.auth',
@@ -40,10 +42,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.gis',
+    # Rest framework
+    'rest_framework',
     # own apps
     'apps.post',
-    'apps.category',
     'apps.core',
+    'apps.category',
     'apps.authentication',
 ]
 
@@ -59,7 +64,6 @@ MIDDLEWARE = [
 
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-
 X_FRAME_OPTIONS = 'ALLOWALL'
 
 ROOT_URLCONF = 'IPDD.urls'
@@ -85,23 +89,23 @@ WSGI_APPLICATION = 'IPDD.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-#         'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
-#         'PORT': os.environ.get('DB_PORT', '5432'),
-#         'NAME': os.environ.get('DB_NAME', 'ipdd'),
-#         'USER': os.environ.get('DB_USER', 'ipdd'),
-#         'PASSWORD': os.environ.get('DB_PASS', 'ipdd'),
-#     },
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
 # }
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
+        'NAME': os.environ.get('DB_NAME', 'ipdd'),
+        'USER': os.environ.get('DB_USER', 'ipdd'),
+        'PASSWORD': os.environ.get('DB_PASS', 'ipdd'),
+    },
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -148,6 +152,20 @@ LOGIN_REDIRECT_URL = ''
 LOGOUT_REDIRECT_URL = ''
 LOGIN_URL = ''
 
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'utils.rest.CustomPageNumberPagination',
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'utils.rest.CsrfExemptSessionAuthentication',
+        'utils.rest.CustomTokenAuthentication',
+    ],
+    'PAGE_SIZE': 50,
+}
+# API authentication token lifetime
+TOKEN_TTL = 60 * 60 * 24
+
 # Django-Jet settings
 JET_SIDE_MENU_COMPACT = True
 JET_SIDE_MENU_ITEMS = jet_config.menu_items
@@ -158,3 +176,27 @@ JET_INDEX_DASHBOARD = 'dashboard.dashboard.CustomIndexDashboard'
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# (42.87, 74.60) are the Bishkek city coordinates
+LEAFLET_CONFIG = {
+    'DEFAULT_CENTER': (42.87, 74.60),
+    'DEFAULT_ZOOM': 10,
+    'RESET_VIEW': False,
+    'TILES': [
+        (
+            'Carto Voyager',
+            'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+            {'attribution': '&copy; <a href="https://carto.com/attributions">CARTO</a> &copy; OpenStreetMap'}
+        ),
+        (
+            'OSM',
+            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            {'attribution': '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}
+        ),
+        (
+            'Carto',
+            'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+            {'attribution': '&copy; <a href="https://carto.com/attributions">CARTO</a> &copy; OpenStreetMap'}
+        ),
+    ],
+}

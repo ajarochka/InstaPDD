@@ -1,5 +1,6 @@
 from django.utils.translation import gettext_lazy as _
 from .models import Post, PostComment, PostImage
+from leaflet.admin import LeafletGeoAdmin
 from django.utils.html import format_html
 from django.contrib import admin
 from .choices import PostStatus
@@ -32,7 +33,7 @@ class PostImageInline(admin.TabularInline):
         )
 
 
-class PostAdmin(admin.ModelAdmin):
+class PostAdmin(LeafletGeoAdmin):
     list_display = ('id', 'user', 'category', 'get_status', 'created_at',)
     list_display_links = ('id', 'user',)
     search_fields = ('user__username', 'user__first_name', 'user__last_name', 'category__name',)
