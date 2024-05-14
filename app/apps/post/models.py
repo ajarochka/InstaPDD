@@ -13,7 +13,8 @@ class Post(models.Model):
     status = models.PositiveSmallIntegerField(choices=PostStatus.choices, default=PostStatus.PENDING)
     address = models.CharField(max_length=128, blank=True, null=True)
     description = models.TextField(max_length=820)
-    location = OSMPointField()
+    location = OSMPointField(null=True)
+    active = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
