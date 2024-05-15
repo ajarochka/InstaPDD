@@ -12,8 +12,10 @@ class Post(models.Model):
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
     status = models.PositiveSmallIntegerField(choices=PostStatus.choices, default=PostStatus.PENDING)
     address = models.CharField(max_length=128, blank=True, null=True)
+    license_plate = models.CharField(max_length=16, blank=True, null=True)
     description = models.TextField(max_length=820)
-    location = OSMPointField(null=True)
+    location = OSMPointField(blank=True, null=True)
+    location_image = models.ImageField(upload_to='photos/%Y/%m/%d', blank=True, null=True)
     active = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
