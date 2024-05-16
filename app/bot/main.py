@@ -25,7 +25,7 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.fsm.storage.memory import MemoryStorage
 from apps.category.models import Violator, Category
 from typing import Callable, Dict, Any, Awaitable
-from aiogram.filters import CommandStart, Command, and_f
+from aiogram.filters import CommandStart, Command
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.utils.formatting import Text, Bold
 from django.contrib.auth import get_user_model
@@ -80,6 +80,15 @@ Please fill the information carefully.
 PAGE_SIZE = 3
 YES = 'yes'
 NO = 'no'
+
+UPDATE_FIELDS_LIST = (
+    ('category_id', 'category'),
+    ('photo', 'photo'),
+    ('license_plate', 'license plate'),
+    ('location', 'location'),
+    ('address', 'address'),
+    ('description', 'description'),
+)
 
 
 class PostAction(StrEnum):
@@ -705,11 +714,8 @@ async def post_update_cb(query: CallbackQuery, state: FSMContext):
     post_id = data.get('post')
     await query.answer('Post update.')
     update_inline_builder = InlineKeyboardBuilder()
-    update_inline_builder.button(text='Update category', callback_data=f'post_update:category_id:post:{post_id}')
-    update_inline_builder.button(text='Update photo', callback_data=f'post_update:photo:post:{post_id}')
-    update_inline_builder.button(text='Update location', callback_data=f'post_update:location:post:{post_id}')
-    update_inline_builder.button(text='Update address', callback_data=f'post_update:address:post:{post_id}')
-    update_inline_builder.button(text='Update description', callback_data=f'post_update:description:post:{post_id}')
+    for f in UPDATE_FIELDS_LIST:
+        update_inline_builder.button(text=f'Update {f[1]}', callback_data=f'post_update:{f[0]}:post:{post_id}')
     update_inline_builder.adjust(2)
     update_inline_builder.row(InlineKeyboardButton(
         text='< Back to post', callback_data=f'post:{post_id}'
@@ -733,7 +739,7 @@ async def post_update_category_cb(query: CallbackQuery, state: FSMContext):
     category_inline_builder = InlineKeyboardBuilder()
     async for obj in Category.objects.filter(violator_id=category.violator_id):
         category_inline_builder.button(
-            text=obj.name, callback_data=f'post_update:complete:post:{post_id}:category_id:{obj.id}:page:{page}'
+            text=obj.name, callback_data=f'update_complete:category_id:post:{post_id}:category_id:{obj.id}:page:{page}'
         )
     category_inline_builder.adjust(2)
     category_inline_builder.row(InlineKeyboardButton(
@@ -748,7 +754,7 @@ async def post_update_category_cb(query: CallbackQuery, state: FSMContext):
     )
 
 
-@dp.callback_query(F.data.casefold().startswith(f'post_update:complete'), PostCreateForm.category_id)
+@dp.callback_query(F.data.casefold().startswith(f'update_complete:category_id'))
 async def post_update_category_complete_cb(query: CallbackQuery, state: FSMContext):
     data = try_parse_query_data(query.data)
     page = data.pop('page', 1)
@@ -774,49 +780,68 @@ async def post_update_category_complete_cb(query: CallbackQuery, state: FSMConte
 async def post_update_category_cb(query: CallbackQuery, state: FSMContext):
     data = try_parse_query_data(query.data)
     post_id = data.get('post')
+    photo_num = int(data.get('photo_num', 0))
     post = await sync_to_async(Post.objects.get)(id=post_id)
-    category = await sync_to_async(Category.objects.get)(id=post.category_id)
+    queryset = await sync_to_async(PostImage.objects.filter)(post_id=post_id)
+    photo_count = await sync_to_async(queryset.count)()
     state_data = await state.get_data()
     page = state_data.get('page', 1)
-    await query.answer('Select category.')
-    category_inline_builder = InlineKeyboardBuilder()
-    async for obj in Category.objects.filter(violator_id=category.violator_id):
-        category_inline_builder.button(
-            text=obj.name, callback_data=f'post_update:complete:post:{post_id}:category_id:{obj.id}:page:{page}'
+    await query.answer('Update photo.')
+    photo_inline_builder = InlineKeyboardBuilder()
+    photo = None
+    photo_controls = []
+    if photo_count > photo_num:
+        photos = await sync_to_async(list)(queryset)
+        photo = photos[photo_num]
+        photo_controls.append(
+            InlineKeyboardButton(text='Delete', callback_data=f'post_update:phodo_delete:photo:{photo.id}')
         )
-    category_inline_builder.adjust(2)
-    category_inline_builder.row(InlineKeyboardButton(
-        text='< Back to post', callback_data=f'post:{post_id}:page:{page}'
-    ))
-    await state.clear()
-    await state.set_state(PostCreateForm.category_id)
-    txt = Text('Your current category is: ', Bold(category.name))
-    await bot.edit_message_text(
-        txt.as_html(), query.from_user.id, query.message.message_id,
-        reply_markup=category_inline_builder.as_markup()
-    )
-
-
-@dp.callback_query(F.data.casefold().startswith(f'post_update:complete'), PostCreateForm.photo)
-async def post_update_category_complete_cb(query: CallbackQuery, state: FSMContext):
-    data = try_parse_query_data(query.data)
-    page = data.pop('page', 1)
-    post_id = data.pop('post')
-    category_id = data.pop('category_id')
-    queryset = await sync_to_async(Post.objects.filter)(id=post_id)
-    await sync_to_async(queryset.update)(category_id=category_id)
-    await state.clear()
-    await state.set_state(PostPageForm.page)
-    await state.update_data(page=page)
-    post_inline_builder = InlineKeyboardBuilder()
-    post_inline_builder.row(InlineKeyboardButton(
+    if photo_count > 1:
+        num = (photo_num + 1) % photo_count
+        photo_controls.append(InlineKeyboardButton(
+            text='Next photo >', callback_data=f'post_update:photo:post:{post_id}:page:{page}:photo_num:{num}')
+        )
+    photo_inline_builder.row(*photo_controls)
+    photo_inline_builder.row(InlineKeyboardButton(
         text='< Back to post', callback_data=f'post:{post_id}')
     )
     await bot.delete_message(query.from_user.id, query.message.message_id)
-    await bot.send_message(
-        query.from_user.id, 'Post category updated',
-        reply_markup=post_inline_builder.as_markup()
-    )
+    # TODO: check if Telegram has the file for "file_id"
+    if photo:
+        media = photo.file_id if photo.file_id else FSInputFile(photo.file.path)
+        msg = await bot.send_photo(
+            query.from_user.id, media, reply_markup=photo_inline_builder.as_markup()
+        )
+        if not photo.file_id:
+            photo.file_id = msg.photo[-1].file_id
+            await sync_to_async(photo.save)()
+    else:
+        await bot.send_message(
+            query.from_user.id, 'No photo found.',
+            reply_markup=photo_inline_builder.as_markup()
+        )
+
+
+# @dp.callback_query(F.data.casefold().startswith(f'update_complete:photo'))
+# async def post_update_category_complete_cb(query: CallbackQuery, state: FSMContext):
+#     data = try_parse_query_data(query.data)
+#     page = data.pop('page', 1)
+#     post_id = data.pop('post')
+#     category_id = data.pop('category_id')
+#     queryset = await sync_to_async(Post.objects.filter)(id=post_id)
+#     await sync_to_async(queryset.update)(category_id=category_id)
+#     await state.clear()
+#     await state.set_state(PostPageForm.page)
+#     await state.update_data(page=page)
+#     post_inline_builder = InlineKeyboardBuilder()
+#     post_inline_builder.row(InlineKeyboardButton(
+#         text='< Back to post', callback_data=f'post:{post_id}')
+#     )
+#     await bot.delete_message(query.from_user.id, query.message.message_id)
+#     await bot.send_message(
+#         query.from_user.id, 'Post category updated',
+#         reply_markup=post_inline_builder.as_markup()
+#     )
 
 
 @dp.callback_query(F.data.casefold().startswith(f'post_action:{PostAction.DELETE}'), PostPageForm.page)
