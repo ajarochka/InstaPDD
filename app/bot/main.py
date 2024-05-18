@@ -106,6 +106,12 @@ class PostCreateForm(StatesGroup):
     description = State()
 
 
+class PostUpdateForm(StatesGroup):
+    post_id = State()
+    location = State()
+    photo = State()
+
+
 class PostPageForm(StatesGroup):
     page = State()
 
@@ -777,11 +783,10 @@ async def post_update_category_complete_cb(query: CallbackQuery, state: FSMConte
 
 
 @dp.callback_query(F.data.casefold().startswith(f'post_update:photo'), PostPageForm.page)
-async def post_update_category_cb(query: CallbackQuery, state: FSMContext):
+async def post_update_photo_cb(query: CallbackQuery, state: FSMContext):
     data = try_parse_query_data(query.data)
     post_id = data.get('post')
     photo_num = int(data.get('photo_num', 0))
-    post = await sync_to_async(Post.objects.get)(id=post_id)
     queryset = await sync_to_async(PostImage.objects.filter)(post_id=post_id)
     photo_count = await sync_to_async(queryset.count)()
     state_data = await state.get_data()
@@ -793,8 +798,15 @@ async def post_update_category_cb(query: CallbackQuery, state: FSMContext):
     if photo_count > photo_num:
         photos = await sync_to_async(list)(queryset)
         photo = photos[photo_num]
+    if photo_count > 1:
         photo_controls.append(
-            InlineKeyboardButton(text='Delete', callback_data=f'post_update:phodo_delete:photo:{photo.id}')
+            InlineKeyboardButton(
+                text='Delete', callback_data=f'post_update:delete_photo:post:{post_id}:photo:{photo.id}'
+            )
+        )
+    if photo_count < 3:
+        photo_controls.append(InlineKeyboardButton(
+            text='Add photo', callback_data=f'post_update:add_photo:post:{post_id}:page:{page}')
         )
     if photo_count > 1:
         num = (photo_num + 1) % photo_count
@@ -820,6 +832,66 @@ async def post_update_category_cb(query: CallbackQuery, state: FSMContext):
             query.from_user.id, 'No photo found.',
             reply_markup=photo_inline_builder.as_markup()
         )
+
+
+@dp.callback_query(F.data.casefold().startswith(f'post_update:photo_delete'))
+async def photo_update_delete_cb(query: CallbackQuery, state: FSMContext):
+    data = try_parse_query_data(query.data)
+    post_id = data.get('post')
+    photo_id = data.get('photo')
+    photo = await sync_to_async(PostImage.objects.get)(id=photo_id)
+    await sync_to_async(photo.delete)()
+    await bot.delete_message(query.from_user.id, query.message.message_id)
+    photo_inline_builder = InlineKeyboardBuilder()
+    photo_inline_builder.row(InlineKeyboardButton(
+        text='< Back to post', callback_data=f'post_update:photo:post:{post_id}')
+    )
+    await bot.send_message(
+        query.from_user.id, 'Post photo deleted',
+        reply_markup=photo_inline_builder.as_markup()
+    )
+
+
+@dp.callback_query(F.data.casefold().startswith(f'post_update:add_photo'), PostPageForm.page)
+async def photo_update_add_cb(query: CallbackQuery, state: FSMContext):
+    await bot.delete_message(query.from_user.id, query.message.message_id)
+    data = try_parse_query_data(query.data)
+    msg = 'Please send photos, max 3 allowed, if exceeded, will substitute existing photo:'
+    await state.set_state(PostUpdateForm.photo)
+    await state.update_data(post_id=data.get('post'))
+    await state.update_data(page=data.get('page'))
+    await bot.send_message(query.from_user.id, msg)
+
+
+@dp.message(PostUpdateForm.photo)
+async def photo_update_add_complete(message: Message, state: FSMContext, album: list[PhotoSize] = None):
+    photos = album or [message.photo]
+    if not photos:
+        msg = 'Please send photos, max 3 allowed, if exceeded, will substitute existing photo:'
+        return await message.answer(msg)
+    photos = photos[:3]
+    data = await state.get_data()
+    post_id = data.get('post_id')
+    page = data.get('page', 1)
+    queryset = await sync_to_async(PostImage.objects.filter)(post_id=post_id)
+    count = await sync_to_async(queryset.count)()
+    existing_photos = await sync_to_async(list)(queryset)
+    while len(photos) + count > 3:
+        p = existing_photos.pop()
+        await sync_to_async(p.delete)()
+    for photo in photos:
+        # Each photo has 4 resolutions, the last one has the best quality.
+        fp = io.BytesIO()
+        await bot.download(photo[-1].file_id, fp)
+        await sync_to_async(PostImage.objects.create)(
+            post_id=post_id, file=File(fp, photo[-1].file_unique_id), file_id=photo[-1].file_id
+        )
+    await state.clear()
+    post_inline_builder = InlineKeyboardBuilder()
+    post_inline_builder.row(InlineKeyboardButton(
+        text='< Back to post', callback_data=f'post:{post_id}:page:{page}')
+    )
+    await bot.send_message(message.from_user.id, 'Photo updates', reply_markup=post_inline_builder.as_markup())
 
 
 # @dp.callback_query(F.data.casefold().startswith(f'update_complete:photo'))

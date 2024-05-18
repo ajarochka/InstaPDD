@@ -32,6 +32,9 @@ class PostImage(models.Model):
     file_id = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ('-created_at',)
+
 
 class PostComment(models.Model):
     user = models.ForeignKey(UserModel, on_delete=models.CASCADE)
