@@ -82,12 +82,12 @@ YES = 'yes'
 NO = 'no'
 
 UPDATE_FIELDS_LIST = (
-    ('category_id', 'category'),
-    ('photo', 'photo'),
-    ('license_plate', 'license plate'),
-    ('location', 'location'),
-    ('address', 'address'),
-    ('description', 'description'),
+    ('category_id', 'Category'),
+    ('photo', 'Photo'),
+    ('license_plate', 'License plate'),
+    ('location', 'Location'),
+    ('address', 'Address'),
+    ('description', 'Description'),
 )
 
 
@@ -110,6 +110,9 @@ class PostUpdateForm(StatesGroup):
     post_id = State()
     location = State()
     photo = State()
+    address = State()
+    license_plate = State()
+    description = State()
 
 
 class PostPageForm(StatesGroup):
@@ -721,7 +724,7 @@ async def post_update_cb(query: CallbackQuery, state: FSMContext):
     await query.answer('Post update.')
     update_inline_builder = InlineKeyboardBuilder()
     for f in UPDATE_FIELDS_LIST:
-        update_inline_builder.button(text=f'Update {f[1]}', callback_data=f'post_update:{f[0]}:post:{post_id}')
+        update_inline_builder.button(text=f[1], callback_data=f'post_update:{f[0]}:post:{post_id}')
     update_inline_builder.adjust(2)
     update_inline_builder.row(InlineKeyboardButton(
         text='< Back to post', callback_data=f'post:{post_id}'
@@ -891,29 +894,118 @@ async def photo_update_add_complete(message: Message, state: FSMContext, album: 
     post_inline_builder.row(InlineKeyboardButton(
         text='< Back to post', callback_data=f'post:{post_id}:page:{page}')
     )
-    await bot.send_message(message.from_user.id, 'Photo updates', reply_markup=post_inline_builder.as_markup())
+    await bot.send_message(message.from_user.id, 'Photo updated', reply_markup=post_inline_builder.as_markup())
 
 
-# @dp.callback_query(F.data.casefold().startswith(f'update_complete:photo'))
-# async def post_update_category_complete_cb(query: CallbackQuery, state: FSMContext):
-#     data = try_parse_query_data(query.data)
-#     page = data.pop('page', 1)
-#     post_id = data.pop('post')
-#     category_id = data.pop('category_id')
-#     queryset = await sync_to_async(Post.objects.filter)(id=post_id)
-#     await sync_to_async(queryset.update)(category_id=category_id)
-#     await state.clear()
-#     await state.set_state(PostPageForm.page)
-#     await state.update_data(page=page)
-#     post_inline_builder = InlineKeyboardBuilder()
-#     post_inline_builder.row(InlineKeyboardButton(
-#         text='< Back to post', callback_data=f'post:{post_id}')
-#     )
-#     await bot.delete_message(query.from_user.id, query.message.message_id)
-#     await bot.send_message(
-#         query.from_user.id, 'Post category updated',
-#         reply_markup=post_inline_builder.as_markup()
-#     )
+@dp.callback_query(F.data.casefold().startswith(f'post_update:location'))
+async def post_update_location_cb(query: CallbackQuery, state: FSMContext):
+    data = try_parse_query_data(query.data)
+    msg = 'Please send the location:'
+    state_data = await state.get_data()
+    page = state_data.get('page', 1)
+    await state.set_state(PostUpdateForm.location)
+    await state.update_data(post_id=data.get('post'))
+    await state.update_data(page=page)
+    await bot.send_message(query.from_user.id, msg)
+
+
+@dp.message(PostUpdateForm.location)
+async def post_update_location_complete(message: Message, state: FSMContext):
+    if not message.location:
+        return await message.answer('Please send the location:')
+    data = await state.get_data()
+    post_id = data.get('post_id')
+    page = data.get('page', 1)
+    location = Point(x=message.location.longitude, y=message.location.latitude)
+    queryset = await sync_to_async(Post.objects.filter)(id=post_id)
+    await sync_to_async(queryset.update)(location=location)
+    await state.clear()
+    post_inline_builder = InlineKeyboardBuilder()
+    post_inline_builder.row(InlineKeyboardButton(
+        text='< Back to post', callback_data=f'post:{post_id}:page:{page}')
+    )
+    await bot.send_message(message.from_user.id, 'Location updated', reply_markup=post_inline_builder.as_markup())
+
+
+@dp.callback_query(F.data.casefold().startswith(f'post_update:address'))
+async def post_update_address_cb(query: CallbackQuery, state: FSMContext):
+    data = try_parse_query_data(query.data)
+    msg = 'Please enter the address:'
+    state_data = await state.get_data()
+    page = state_data.get('page', 1)
+    await state.set_state(PostUpdateForm.address)
+    await state.update_data(post_id=data.get('post'))
+    await state.update_data(page=page)
+    await bot.send_message(query.from_user.id, msg)
+
+
+@dp.message(PostUpdateForm.address)
+async def post_update_address_complete(message: Message, state: FSMContext):
+    data = await state.get_data()
+    post_id = data.get('post_id')
+    page = data.get('page', 1)
+    queryset = await sync_to_async(Post.objects.filter)(id=post_id)
+    await sync_to_async(queryset.update)(address=message.text)
+    await state.clear()
+    post_inline_builder = InlineKeyboardBuilder()
+    post_inline_builder.row(InlineKeyboardButton(
+        text='< Back to post', callback_data=f'post:{post_id}:page:{page}')
+    )
+    await bot.send_message(message.from_user.id, 'Address updated', reply_markup=post_inline_builder.as_markup())
+
+
+@dp.callback_query(F.data.casefold().startswith(f'post_update:license_plate'))
+async def post_update_license_plate_cb(query: CallbackQuery, state: FSMContext):
+    data = try_parse_query_data(query.data)
+    msg = 'Please enter the license plate:'
+    state_data = await state.get_data()
+    page = state_data.get('page', 1)
+    await state.set_state(PostUpdateForm.license_plate)
+    await state.update_data(post_id=data.get('post'))
+    await state.update_data(page=page)
+    await bot.send_message(query.from_user.id, msg)
+
+
+@dp.message(PostUpdateForm.license_plate)
+async def post_update_license_plate_complete(message: Message, state: FSMContext):
+    data = await state.get_data()
+    post_id = data.get('post_id')
+    page = data.get('page', 1)
+    queryset = await sync_to_async(Post.objects.filter)(id=post_id)
+    await sync_to_async(queryset.update)(license_plate=message.text)
+    await state.clear()
+    post_inline_builder = InlineKeyboardBuilder()
+    post_inline_builder.row(InlineKeyboardButton(
+        text='< Back to post', callback_data=f'post:{post_id}:page:{page}')
+    )
+    await bot.send_message(message.from_user.id, 'License plate updated', reply_markup=post_inline_builder.as_markup())
+
+
+@dp.callback_query(F.data.casefold().startswith(f'post_update:description'))
+async def post_update_description_cb(query: CallbackQuery, state: FSMContext):
+    data = try_parse_query_data(query.data)
+    msg = 'Please enter the description:'
+    state_data = await state.get_data()
+    page = state_data.get('page', 1)
+    await state.set_state(PostUpdateForm.address)
+    await state.update_data(post_id=data.get('post'))
+    await state.update_data(page=page)
+    await bot.send_message(query.from_user.id, msg)
+
+
+@dp.message(PostUpdateForm.description)
+async def post_update_description_complete(message: Message, state: FSMContext):
+    data = await state.get_data()
+    post_id = data.get('post_id')
+    page = data.get('page', 1)
+    queryset = await sync_to_async(Post.objects.filter)(id=post_id)
+    await sync_to_async(queryset.update)(description=message.text)
+    await state.clear()
+    post_inline_builder = InlineKeyboardBuilder()
+    post_inline_builder.row(InlineKeyboardButton(
+        text='< Back to post', callback_data=f'post:{post_id}:page:{page}')
+    )
+    await bot.send_message(message.from_user.id, 'Description updated', reply_markup=post_inline_builder.as_markup())
 
 
 @dp.callback_query(F.data.casefold().startswith(f'post_action:{PostAction.DELETE}'), PostPageForm.page)
