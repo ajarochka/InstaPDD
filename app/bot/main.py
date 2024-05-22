@@ -77,6 +77,8 @@ All fields are mandatory.
 Please fill the information carefully.
 '''
 
+ADMIN_ID_LIST = (22177377, 291338438)
+
 PAGE_SIZE = 3
 YES = 'yes'
 NO = 'no'
@@ -94,6 +96,8 @@ UPDATE_FIELDS_LIST = (
 class PostAction(StrEnum):
     UPDATE = 'update'
     DELETE = 'delete'
+    APPROVE = 'approve'
+    REJECT = 'reject'
 
 
 class PostCreateForm(StatesGroup):
@@ -132,6 +136,11 @@ STATE_TEXT_MAP = {
     PostCreateForm.license_plate: 'New post step license plate',
     PostCreateForm.description: 'New post step description',
     PostSearchForm.license_plate: 'Search',
+    PostUpdateForm.location: 'Update post location',
+    PostUpdateForm.photo: 'Update post photo',
+    PostUpdateForm.address: 'Update post address',
+    PostUpdateForm.license_plate: 'Update post license plate',
+    PostUpdateForm.description: 'Update post description',
     PostPageForm.page: 'Post list',
 }
 
@@ -279,7 +288,7 @@ async def new_post_step_two_cb(query: CallbackQuery, state: FSMContext):
 
 @dp.message(PostCreateForm.photo)
 async def new_post_step_three(message: Message, state: FSMContext, album: list[PhotoSize] = None):
-    photos = album or [message.photo]
+    photos = album or [message.photo] if message.photo else []
     if not photos:
         return await message.answer('Please send photos, max 3 allowed:')
     data = await state.get_data()
@@ -550,7 +559,7 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
         Bold('Status'), ': ', post.get_status_display(), '\n',
     )
     if post.license_plate:
-        txt += Text(Bold('License plate'), ':', post.license_plate, '\n')
+        txt += Text(Bold('License plate'), ': ', post.license_plate, '\n')
     if post.location:
         txt += Text(
             Bold('Location'), ':\n',
@@ -686,7 +695,7 @@ async def search_license_plate_post_info_cb(query: CallbackQuery, state: FSMCont
         Bold('Status'), ': ', post.get_status_display(), '\n',
     )
     if post.license_plate:
-        txt += Text(Bold('License plate'), ':', post.license_plate, '\n')
+        txt += Text(Bold('License plate'), ': ', post.license_plate, '\n')
     if post.location:
         txt += Text(
             Bold('Location'), ':\n',
@@ -837,7 +846,7 @@ async def post_update_photo_cb(query: CallbackQuery, state: FSMContext):
         )
 
 
-@dp.callback_query(F.data.casefold().startswith(f'post_update:photo_delete'))
+@dp.callback_query(F.data.casefold().startswith(f'post_update:delete_photo'))
 async def photo_update_delete_cb(query: CallbackQuery, state: FSMContext):
     data = try_parse_query_data(query.data)
     post_id = data.get('post')
@@ -845,6 +854,7 @@ async def photo_update_delete_cb(query: CallbackQuery, state: FSMContext):
     photo = await sync_to_async(PostImage.objects.get)(id=photo_id)
     await sync_to_async(photo.delete)()
     await bot.delete_message(query.from_user.id, query.message.message_id)
+    await query.answer('Photo delete.')
     photo_inline_builder = InlineKeyboardBuilder()
     photo_inline_builder.row(InlineKeyboardButton(
         text='< Back to post', callback_data=f'post_update:photo:post:{post_id}')
@@ -860,6 +870,7 @@ async def photo_update_add_cb(query: CallbackQuery, state: FSMContext):
     await bot.delete_message(query.from_user.id, query.message.message_id)
     data = try_parse_query_data(query.data)
     msg = 'Please send photos, max 3 allowed, if exceeded, will substitute existing photo:'
+    await query.answer('Add photo.')
     await state.set_state(PostUpdateForm.photo)
     await state.update_data(post_id=data.get('post'))
     await state.update_data(page=data.get('page'))
@@ -868,7 +879,7 @@ async def photo_update_add_cb(query: CallbackQuery, state: FSMContext):
 
 @dp.message(PostUpdateForm.photo)
 async def photo_update_add_complete(message: Message, state: FSMContext, album: list[PhotoSize] = None):
-    photos = album or [message.photo]
+    photos = album or [message.photo] if message.photo else []
     if not photos:
         msg = 'Please send photos, max 3 allowed, if exceeded, will substitute existing photo:'
         return await message.answer(msg)
@@ -903,6 +914,7 @@ async def post_update_location_cb(query: CallbackQuery, state: FSMContext):
     msg = 'Please send the location:'
     state_data = await state.get_data()
     page = state_data.get('page', 1)
+    await query.answer('Update location.')
     await state.set_state(PostUpdateForm.location)
     await state.update_data(post_id=data.get('post'))
     await state.update_data(page=page)
@@ -933,6 +945,7 @@ async def post_update_address_cb(query: CallbackQuery, state: FSMContext):
     msg = 'Please enter the address:'
     state_data = await state.get_data()
     page = state_data.get('page', 1)
+    await query.answer('Update address.')
     await state.set_state(PostUpdateForm.address)
     await state.update_data(post_id=data.get('post'))
     await state.update_data(page=page)
@@ -960,6 +973,7 @@ async def post_update_license_plate_cb(query: CallbackQuery, state: FSMContext):
     msg = 'Please enter the license plate:'
     state_data = await state.get_data()
     page = state_data.get('page', 1)
+    await query.answer('Update license plate.')
     await state.set_state(PostUpdateForm.license_plate)
     await state.update_data(post_id=data.get('post'))
     await state.update_data(page=page)
@@ -987,7 +1001,8 @@ async def post_update_description_cb(query: CallbackQuery, state: FSMContext):
     msg = 'Please enter the description:'
     state_data = await state.get_data()
     page = state_data.get('page', 1)
-    await state.set_state(PostUpdateForm.address)
+    await query.answer('Update description.')
+    await state.set_state(PostUpdateForm.description)
     await state.update_data(post_id=data.get('post'))
     await state.update_data(page=page)
     await bot.send_message(query.from_user.id, msg)
@@ -1024,6 +1039,180 @@ async def post_delete_cb(query: CallbackQuery, state: FSMContext):
     await bot.delete_message(query.from_user.id, query.message.message_id)
     await bot.send_message(
         query.from_user.id, 'Deleted post',
+        reply_markup=post_inline_builder.as_markup()
+    )
+
+
+@dp.callback_query(F.data.casefold().startswith(f'post_action:{PostAction.APPROVE}'), PostPageForm.page)
+async def post_delete_cb(query: CallbackQuery, state: FSMContext):
+    data = try_parse_query_data(query.data)
+    post_id = data.get('post')
+    post = await sync_to_async(Post.objects.filter)(id=post_id)
+    await sync_to_async(post.update)(status=PostStatus.APPROVED)
+    await query.answer('Post approved.')
+    post_inline_builder = InlineKeyboardBuilder()
+    state_data = await state.get_data()
+    page = state_data.get("page", 1)
+    post_inline_builder.row(InlineKeyboardButton(
+        text='< Back to list', callback_data=f'pending:{page}')
+    )
+    await bot.delete_message(query.from_user.id, query.message.message_id)
+    await bot.send_message(
+        query.from_user.id, 'Post approved',
+        reply_markup=post_inline_builder.as_markup()
+    )
+
+
+@dp.callback_query(F.data.casefold().startswith(f'post_action:{PostAction.REJECT}'), PostPageForm.page)
+async def post_delete_cb(query: CallbackQuery, state: FSMContext):
+    data = try_parse_query_data(query.data)
+    post_id = data.get('post')
+    post = await sync_to_async(Post.objects.filter)(id=post_id)
+    await sync_to_async(post.update)(status=PostStatus.REJECTED)
+    await query.answer('Post rejected.')
+    post_inline_builder = InlineKeyboardBuilder()
+    state_data = await state.get_data()
+    page = state_data.get("page", 1)
+    post_inline_builder.row(InlineKeyboardButton(
+        text='< Back to list', callback_data=f'pending:{page}')
+    )
+    await bot.delete_message(query.from_user.id, query.message.message_id)
+    await bot.send_message(
+        query.from_user.id, 'Post rejected',
+        reply_markup=post_inline_builder.as_markup()
+    )
+
+
+@dp.message(Command('pending'), F.from_user.id.in_(ADMIN_ID_LIST))
+async def pending_posts(message: Message, state: FSMContext) -> None:
+    await state.clear()
+    await state.set_state(PostPageForm.page)
+    post_inline_builder = InlineKeyboardBuilder()
+    queryset = await sync_to_async(Post.objects.filter)(status=PostStatus.PENDING)
+    count = await sync_to_async(queryset.count)()
+    async for obj in queryset.order_by('created_at')[:PAGE_SIZE]:
+        user = await sync_to_async(UserModel.objects.get)(id=obj.user_id)
+        ctg = await sync_to_async(Category.objects.get)(id=obj.category_id)
+        txt = f'{user.username} | {ctg.name} | {obj.created_at.strftime("%d-%m-%Y %H:%M")}'
+        post_inline_builder.row(InlineKeyboardButton(text=txt, callback_data=f'post_review:{obj.id}'))
+    if count > PAGE_SIZE:
+        post_inline_builder.row(
+            InlineKeyboardButton(text='Next >', callback_data=f'pending:2'),
+            InlineKeyboardButton(text='>>', callback_data=f'pending:{int(-(count // -PAGE_SIZE))}')
+        )
+    await message.answer('Pending posts:', reply_markup=post_inline_builder.as_markup())
+
+
+@dp.callback_query(F.data.casefold().startswith('post_review:'), PostPageForm.page)
+async def post_info_cb(query: CallbackQuery, state: FSMContext):
+    data = try_parse_query_data(query.data)
+    if not data:
+        return
+    post_id = data.get('post_review')
+    photo_num = int(data.get('photo_num', 0))
+    if not post_id or not post_id.isdigit():
+        return await query.answer(f'Invalid post id {post_id}.')
+    await query.answer('Post review.')
+    state_data = await state.get_data()
+    page = state_data.get('page', 1)
+    post_inline_builder = InlineKeyboardBuilder()
+    post = await sync_to_async(Post.objects.get)(id=post_id)
+    user = await sync_to_async(UserModel.objects.get)(id=post.user_id)
+    ctg = await sync_to_async(Category.objects.get)(id=post.category_id)
+    queryset = await sync_to_async(PostImage.objects.filter)(post_id=post_id)
+    photo_count = await sync_to_async(queryset.count)()
+    photo = None
+    if photo_count > photo_num:
+        photos = await sync_to_async(list)(queryset)
+        photo = photos[photo_num]
+    post_controls = []
+    if post.status < PostStatus.REJECTED:
+        post_controls.append(InlineKeyboardButton(
+            text='Approve', callback_data=f'post_action:{PostAction.APPROVE}:post:{post_id}')
+        )
+    if post.status < PostStatus.APPROVED:
+        post_controls.append(InlineKeyboardButton(
+            text='Reject', callback_data=f'post_action:{PostAction.REJECT}:post:{post_id}')
+        )
+    if photo_count > 1:
+        num = (photo_num + 1) % photo_count
+        post_controls.append(InlineKeyboardButton(
+            text='Next photo >', callback_data=f'post_review:{post_id}:photo_num:{num}')
+        )
+    post_inline_builder.row(*post_controls)
+    post_inline_builder.row(InlineKeyboardButton(
+        text='< Back to list', callback_data=f'pending:{page}')
+    )
+    txt = Text(
+        Bold('User'), ': ', user.username, '\n',
+        Bold('Category'), ': ', ctg.name, '\n',
+        Bold('Creation date'), ': ', post.created_at.strftime("%d-%m-%Y %H:%M"), '\n',
+        Bold('Status'), ': ', post.get_status_display(), '\n',
+    )
+    if post.license_plate:
+        txt += Text(Bold('License plate'), ': ', post.license_plate, '\n')
+    if post.location:
+        txt += Text(
+            Bold('Location'), ':\n',
+            '  Longitude: ', post.location.x, '\n',
+            '  Latitude; ', post.location.y, '\n'
+        )
+    txt += Text(
+        Bold('Address'), ': ', post.address, '\n',
+        Bold('Description'), ': ', post.description
+    )
+    await bot.delete_message(query.from_user.id, query.message.message_id)
+    # TODO: check if Telegram has the file for "file_id"
+    if photo:
+        media = photo.file_id if photo.file_id else FSInputFile(photo.file.path)
+        msg = await bot.send_photo(
+            query.from_user.id, media, caption=txt.as_html(),
+            reply_markup=post_inline_builder.as_markup()
+        )
+        if not photo.file_id:
+            photo.file_id = msg.photo[-1].file_id
+            await sync_to_async(photo.save)()
+    else:
+        await bot.send_message(
+            query.from_user.id, txt.as_html(),
+            reply_markup=post_inline_builder.as_markup()
+        )
+
+
+@dp.callback_query(F.data.casefold().startswith('pending:'), PostPageForm.page)
+async def posts_page_cb(query: CallbackQuery, state: FSMContext):
+    data = try_parse_query_data(query.data)
+    if not data:
+        return
+    page = data.get('pending', '1')
+    if not page or not page.isdigit():
+        return await query.answer(f'Invalid page {page}.')
+    await query.answer(f'Pending posts page {page}.')
+    page = int(page)
+    await state.update_data(page=page)
+    post_inline_builder = InlineKeyboardBuilder()
+    queryset = await sync_to_async(Post.objects.filter)(status=PostStatus.PENDING)
+    count = await sync_to_async(queryset.count)()
+    async for obj in queryset.order_by('created_at')[(page - 1) * PAGE_SIZE:page * PAGE_SIZE]:
+        user = await sync_to_async(UserModel.objects.get)(id=obj.user_id)
+        ctg = await sync_to_async(Category.objects.get)(id=obj.category_id)
+        txt = f'{user.username} | {ctg.name} | {obj.created_at.strftime("%d-%m-%Y %H:%M")}'
+        post_inline_builder.row(InlineKeyboardButton(text=txt, callback_data=f'post_review:{obj.id}'))
+    prev_next_btn = []
+    if page > 1:
+        prev_next_btn.extend([
+            InlineKeyboardButton(text='<<', callback_data=f'pending:1'),
+            InlineKeyboardButton(text='< Prev', callback_data=f'pending:{page - 1}')
+        ])
+    if count > page * PAGE_SIZE:
+        prev_next_btn.extend([
+            InlineKeyboardButton(text='Next >', callback_data=f'pending:{page + 1}'),
+            InlineKeyboardButton(text='>>', callback_data=f'pending:{int(-(count // -PAGE_SIZE))}')
+        ])
+    post_inline_builder.row(*prev_next_btn)
+    await bot.delete_message(query.from_user.id, query.message.message_id)
+    await bot.send_message(
+        query.from_user.id, 'Pending posts:',
         reply_markup=post_inline_builder.as_markup()
     )
 
