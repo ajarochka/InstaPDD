@@ -4,6 +4,8 @@ from leaflet.admin import LeafletGeoAdmin
 from django.utils.html import format_html
 from django.contrib import admin
 from .choices import PostStatus
+from django.db import models
+from django import forms
 
 STATUS_ICON_MAP = {
     PostStatus.PENDING: 'icon-alert.svg',
@@ -15,6 +17,9 @@ STATUS_ICON_MAP = {
 class PostCommentInline(admin.TabularInline):
     model = PostComment
     extra = 0
+    formfield_overrides = {
+        models.TextField: {'widget': forms.Textarea(attrs={'rows': 3})},
+    }
 
 
 class PostImageInline(admin.TabularInline):
