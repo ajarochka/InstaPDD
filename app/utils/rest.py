@@ -7,11 +7,10 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from collections import defaultdict
 from django.utils import timezone
-from django.conf import settings
 from datetime import timedelta
+from constance import config
 
 
-# Import from models.py is not recommended
 class CustomTokenAuthentication(TokenAuthentication):
     keyword = 'Bearer'
     model = CustomToken
@@ -22,7 +21,7 @@ class CustomTokenAuthentication(TokenAuthentication):
             if token.expires_at < timezone.now():
                 raise exceptions.AuthenticationFailed('Token has expired')
             # If token is in use, move the expiration date forward...
-            token.expires_at = timezone.now() + timedelta(seconds=settings.TOKEN_TTL)
+            token.expires_at = timezone.now() + timedelta(seconds=config.TOKEN_TTL)
             token.save(update_fields=('expires_at',))
         return token.user, token
 

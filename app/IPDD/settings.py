@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
+from django.utils.translation import gettext_lazy as _
 from IPDD import jet_config
 from pathlib import Path
 import os
@@ -43,8 +44,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.gis',
+    # Constance
+    'constance',
+    'constance.backends.database',
+    # Swagger docs
+    'drf_yasg',
     # Rest framework
     'rest_framework',
+    'rest_framework.authtoken',
     # own apps
     'apps.post',
     'apps.core',
@@ -148,10 +155,6 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'), ]
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-LOGIN_REDIRECT_URL = ''
-LOGOUT_REDIRECT_URL = ''
-LOGIN_URL = ''
-
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'utils.rest.CustomPageNumberPagination',
     'DEFAULT_PERMISSION_CLASSES': [
@@ -161,10 +164,13 @@ REST_FRAMEWORK = {
         'utils.rest.CsrfExemptSessionAuthentication',
         'utils.rest.CustomTokenAuthentication',
     ],
-    'PAGE_SIZE': 50,
+    'PAGE_SIZE': 20,
 }
-# API authentication token lifetime
-TOKEN_TTL = 60 * 60 * 24
+
+CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
+CONSTANCE_CONFIG = {
+    'TOKEN_TTL': (60 * 60 * 24, _('API authentication token lifetime.')),
+}
 
 # Django-Jet settings
 JET_SIDE_MENU_COMPACT = True
