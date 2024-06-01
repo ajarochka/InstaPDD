@@ -4,7 +4,7 @@ from rest_framework import serializers
 
 
 class PostCommentSerializer(serializers.ModelSerializer):
-    user_name = serializers.CharField(source='user.username', read_only=True)
+    username = serializers.CharField(source='user.username', read_only=True)
     created_at = serializers.SerializerMethodField(read_only=True)
 
     class Meta:

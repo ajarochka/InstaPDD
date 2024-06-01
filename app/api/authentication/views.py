@@ -14,7 +14,7 @@ from . import serializers
 UserModel = get_user_model()
 
 
-class RegisterCustomer(generics.CreateAPIView):
+class RegisterApi(generics.CreateAPIView):
     serializer_class = serializers.RegisterCustomerSerializer
     renderer_classes = (CustomJsonRenderer,)
     permission_classes = (permissions.AllowAny,)
@@ -70,7 +70,7 @@ class ChangePasswordApi(generics.CreateAPIView):
         return Response()
 
 
-class Logout(generics.GenericAPIView):
+class LogoutApi(generics.GenericAPIView):
     renderer_classes = (CustomJsonRenderer,)
     permission_classes = (permissions.IsAuthenticated,)
     pagination_class = None

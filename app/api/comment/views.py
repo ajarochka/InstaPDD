@@ -11,6 +11,8 @@ class PostCommentsListApiView(generics.ListAPIView):
     renderer_classes = (CustomJsonRenderer,)
     serializer_class = PostCommentSerializer
     ordering_fields = ('created_at',)
+    lookup_field = 'pk'
+    lookup_url_kwarg = 'post_pk'
 
     def list(self, request, *args, **kwargs):
         post = self.get_object()

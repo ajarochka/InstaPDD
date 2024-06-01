@@ -8,4 +8,4 @@ class CustomToken(Token):
 
 
 class Profile(AbstractUser):
-    pass
+    phone = models.CharField(max_length=32, blank=True, null=True)
