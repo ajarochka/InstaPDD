@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    volumes:
+      - /opt/ipdd/db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${DB_NAME:-ipdd}
+      POSTGRES_USER: ${DB_USER:-ipdd}
+      POSTGRES_PASSWORD: ${DB_PASS:-ipdd}
+    expose:
+      - 5432
+
+  web:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    entrypoint: /app/entrypoint.sh
+    environment:
+      DB_HOST: ${DB_HOST:-db}
+      DB_PASS: ${DB_PASS:-ipdd}
+      DB_USER: ${DB_USER:-ipdd}
+      DB_NAME: ${DB_NAME:-ipdd}
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+    volumes:
+      - ./app:/app
+      - /opt/ipdd/media:/app/media
+      - /opt/ipdd/static:/app/staticfiles
+    ports:
+      - "8000:8000"
+      - "587:587"
+      - "465:465"
+      - "25:25"
+    depends_on:
+      - db
+      - redis
+
+  redis:
+    image: redis:alpine
+    command: redis-server
