@@ -32,36 +32,11 @@ services:
       - "8000:8000"
       - "587:587"
       - "465:465"
+      - "443:443"
       - "25:25"
     depends_on:
       - db
       - redis
-
-  bot:
-    build:
-      context: ./app
-      dockerfile: Dockerfile
-    entrypoint: /app/entrypoint-bot.sh
-    environment:
-      DB_HOST: ${DB_HOST:-db}
-      DB_PASS: ${DB_PASS:-ipdd}
-      DB_USER: ${DB_USER:-ipdd}
-      DB_NAME: ${DB_NAME:-ipdd}
-      REDIS_HOST: ${REDIS_HOST:-redis}
-      REDIS_PORT: ${REDIS_PORT:-6379}
-    volumes:
-      - ./app:/app
-      - /opt/ipdd/media:/app/media
-      - /opt/ipdd/static:/app/staticfiles
-    ports:
-      - "8000:8000"
-      - "587:587"
-      - "465:465"
-      - "25:25"
-    depends_on:
-      - db
-      - redis
-      - web
 
   redis:
     image: redis:alpine
