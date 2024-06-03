@@ -265,7 +265,7 @@ async def new_post_step_one_cb(query: CallbackQuery, state: FSMContext):
     category_inline_builder = InlineKeyboardBuilder()
     async for obj in Category.objects.filter(violator_id=data.get('violator')):
         category_inline_builder.button(text=obj.name, callback_data=f'category:{obj.id}')
-    category_inline_builder.adjust(2)
+    category_inline_builder.adjust(1)
     await state.set_state(PostCreateForm.category_id)
     await bot.edit_message_text(
         'Please select category:', query.from_user.id,
@@ -294,8 +294,8 @@ async def new_post_step_three(message: Message, state: FSMContext, album: list[P
     data = await state.get_data()
     photo_list = data.get('photo', [])
     ask_inline_builder = InlineKeyboardBuilder()
-    ask_inline_builder.button(text='Yes', callback_data=f'finish:{YES}')
-    ask_inline_builder.button(text='No', callback_data=f'finish:{NO}')
+    ask_inline_builder.button(text='Yes', callback_data=f'finish_photo:{YES}')
+    ask_inline_builder.button(text='No', callback_data=f'finish_photo:{NO}')
     if len(photo_list) < 3:
         for photo in photos[:3 - len(photo_list)]:
             # Each photo has 4 resolutions, the last one has the best quality.
@@ -303,10 +303,10 @@ async def new_post_step_three(message: Message, state: FSMContext, album: list[P
         await state.update_data(photo=photo_list)
     if len(photo_list) > 2:
         await state.set_state(PostCreateForm.location)
-        ask_inline_builder = InlineKeyboardBuilder()
-        ask_inline_builder.button(text='Skip this step', callback_data=f'finish:{YES}')
+        ask_location_builder = InlineKeyboardBuilder()
+        ask_location_builder.button(text='Skip this step', callback_data=f'finish_location:{YES}')
         await bot.send_message(
-            message.from_user.id, 'Please send the location:', reply_markup=ask_inline_builder.as_markup()
+            message.from_user.id, 'Please send the location:', reply_markup=ask_location_builder.as_markup()
         )
     else:
         await bot.send_message(
@@ -315,16 +315,16 @@ async def new_post_step_three(message: Message, state: FSMContext, album: list[P
         )
 
 
-@dp.callback_query(F.data.casefold().startswith('finish:'), PostCreateForm.photo)
+@dp.callback_query(F.data.casefold().startswith('finish_photo:'), PostCreateForm.photo)
 async def new_post_step_three_cb(query: CallbackQuery, state: FSMContext):
     data = try_parse_query_data(query.data)
     if not data:
         return
-    if data.get('finish') == YES:
+    if data.get('finish_photo') == YES:
         await query.answer('Photo uploaded.')
         await state.set_state(PostCreateForm.location)
         ask_inline_builder = InlineKeyboardBuilder()
-        ask_inline_builder.button(text='Skip this step', callback_data=f'finish:{YES}')
+        ask_inline_builder.button(text='Skip this step', callback_data=f'finish_location:{YES}')
         return await bot.edit_message_text(
             'Please send the location:', query.from_user.id,
             query.message.message_id, reply_markup=ask_inline_builder.as_markup()
@@ -336,21 +336,21 @@ async def new_post_step_three_cb(query: CallbackQuery, state: FSMContext):
 async def new_post_step_four(message: Message, state: FSMContext):
     if not message.location:
         ask_inline_builder = InlineKeyboardBuilder()
-        ask_inline_builder.button(text='Skip this step', callback_data=f'finish:{YES}')
+        ask_inline_builder.button(text='Skip this step', callback_data=f'finish_location:{YES}')
         return await message.answer('Please send the location:', reply_markup=ask_inline_builder.as_markup())
     await state.update_data(location=message.location)
     await state.set_state(PostCreateForm.address)
     address_inline_builder = InlineKeyboardBuilder()
-    address_inline_builder.button(text='Skip this step', callback_data=f'finish:{YES}')
+    address_inline_builder.button(text='Skip this step', callback_data=f'finish_address:{YES}')
     await message.answer('Please send the address:', reply_markup=address_inline_builder.as_markup())
 
 
-@dp.callback_query(F.data.casefold().startswith('finish:'), PostCreateForm.location)
+@dp.callback_query(F.data.casefold().startswith('finish_location:'), PostCreateForm.location)
 async def new_post_step_four_cb(query: CallbackQuery, state: FSMContext):
     data = try_parse_query_data(query.data)
     if not data:
         return
-    if data.get('finish') == YES:
+    if data.get('finish_location') == YES:
         await query.answer('Location skipped.')
         await state.set_state(PostCreateForm.address)
         return await bot.edit_message_text(
@@ -359,9 +359,33 @@ async def new_post_step_four_cb(query: CallbackQuery, state: FSMContext):
         )
     # The following code is nlikely to be called.
     ask_inline_builder = InlineKeyboardBuilder()
-    ask_inline_builder.button(text='Skip this step', callback_data=f'finish:{YES}')
+    ask_inline_builder.button(text='Skip this step', callback_data=f'finish_location:{YES}')
     await bot.edit_message_text(
         'Please send the location:', query.from_user.id,
+        query.message.message_id, reply_markup=ask_inline_builder.as_markup()
+    )
+
+
+@dp.callback_query(F.data.casefold().startswith('finish_address:'), PostCreateForm.address)
+async def new_post_step_five_cb(query: CallbackQuery, state: FSMContext):
+    data = try_parse_query_data(query.data)
+    if not data:
+        return
+    if data.get('finish_address') == YES:
+        await query.answer('Address skipped.')
+        ask_license_builder = InlineKeyboardBuilder()
+        ask_license_builder.button(text='Skip this step', callback_data=f'finish_license:{YES}')
+        await state.set_state(PostCreateForm.license_plate)
+        return await bot.edit_message_text(
+            'Please send the license plate:',
+            query.from_user.id, query.message.message_id,
+            reply_markup=ask_license_builder.as_markup()
+        )
+    # The following code is nlikely to be called.
+    ask_inline_builder = InlineKeyboardBuilder()
+    ask_inline_builder.button(text='Skip this step', callback_data=f'finish_address:{YES}')
+    await bot.edit_message_text(
+        'Please send the address:', query.from_user.id,
         query.message.message_id, reply_markup=ask_inline_builder.as_markup()
     )
 
@@ -369,7 +393,7 @@ async def new_post_step_four_cb(query: CallbackQuery, state: FSMContext):
 @dp.message(PostCreateForm.address)
 async def new_post_step_five(message: Message, state: FSMContext):
     ask_inline_builder = InlineKeyboardBuilder()
-    ask_inline_builder.button(text='Skip this step', callback_data=f'finish:{YES}')
+    ask_inline_builder.button(text='Skip this step', callback_data=f'finish_license:{YES}')
     await state.update_data(address=message.text)
     await state.set_state(PostCreateForm.license_plate)
     await bot.send_message(
@@ -378,24 +402,23 @@ async def new_post_step_five(message: Message, state: FSMContext):
     )
 
 
-@dp.callback_query(F.data.casefold().startswith('finish:'), PostCreateForm.address)
-async def new_post_step_five_cb(query: CallbackQuery, state: FSMContext):
+@dp.callback_query(F.data.casefold().startswith('finish_license:'), PostCreateForm.license_plate)
+async def new_post_step_six_cb(query: CallbackQuery, state: FSMContext):
     data = try_parse_query_data(query.data)
     if not data:
         return
-    ask_inline_builder = InlineKeyboardBuilder()
-    ask_inline_builder.button(text='Skip this step', callback_data=f'finish:{YES}')
-    if data.get('finish') == YES:
-        await query.answer('Address skipped.')
-        await state.set_state(PostCreateForm.license_plate)
+    if data.get('finish_license') == YES:
+        await query.answer('License plate skipped.')
+        await state.set_state(PostCreateForm.description)
         return await bot.edit_message_text(
-            'Please send the license plate:',
-            query.from_user.id, query.message.message_id,
-            reply_markup=ask_inline_builder.as_markup()
+            'Please send the description:',
+            query.from_user.id, query.message.message_id
         )
     # The following code is nlikely to be called.
+    ask_inline_builder = InlineKeyboardBuilder()
+    ask_inline_builder.button(text='Skip this step', callback_data=f'finish_license:{YES}')
     await bot.edit_message_text(
-        'Please send the address:', query.from_user.id,
+        'Please send the license plate:', query.from_user.id,
         query.message.message_id, reply_markup=ask_inline_builder.as_markup()
     )
 
@@ -405,28 +428,6 @@ async def new_post_step_six(message: Message, state: FSMContext):
     await state.update_data(license_plate=message.text)
     await state.set_state(PostCreateForm.description)
     await bot.send_message(message.from_user.id, 'Please enter the description:')
-
-
-@dp.callback_query(F.data.casefold().startswith('finish:'), PostCreateForm.license_plate)
-async def new_post_step_six_cb(query: CallbackQuery, state: FSMContext):
-    data = try_parse_query_data(query.data)
-    if not data:
-        return
-    ask_inline_builder = InlineKeyboardBuilder()
-    ask_inline_builder.button(text='Skip this step', callback_data=f'finish:{YES}')
-    if data.get('finish') == YES:
-        await query.answer('License plate skipped.')
-        await state.set_state(PostCreateForm.license_plate)
-        return await bot.edit_message_text(
-            'Please send the description:',
-            query.from_user.id, query.message.message_id,
-            reply_markup=ask_inline_builder.as_markup()
-        )
-    # The following code is nlikely to be called.
-    await bot.edit_message_text(
-        'Please send the license plate:', query.from_user.id,
-        query.message.message_id, reply_markup=ask_inline_builder.as_markup()
-    )
 
 
 @dp.message(PostCreateForm.description)

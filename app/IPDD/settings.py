@@ -105,10 +105,21 @@ WSGI_APPLICATION = 'IPDD.wsgi.application'
 #     }
 # }
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.contrib.gis.db.backends.postgis',
+#         'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
+#         'PORT': os.environ.get('DB_PORT', '5432'),
+#         'NAME': os.environ.get('DB_NAME', 'ipdd'),
+#         'USER': os.environ.get('DB_USER', 'ipdd'),
+#         'PASSWORD': os.environ.get('DB_PASS', 'ipdd'),
+#     },
+# }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
+        'HOST': os.environ.get('DB_HOST', '159.89.20.69'),
         'PORT': os.environ.get('DB_PORT', '5432'),
         'NAME': os.environ.get('DB_NAME', 'ipdd'),
         'USER': os.environ.get('DB_USER', 'ipdd'),

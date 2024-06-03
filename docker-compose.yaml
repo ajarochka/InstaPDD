@@ -30,10 +30,6 @@ services:
       - /opt/ipdd/static:/app/staticfiles
     ports:
       - "8000:8000"
-      - "587:587"
-      - "465:465"
-      - "443:443"
-      - "25:25"
     depends_on:
       - db
       - redis
