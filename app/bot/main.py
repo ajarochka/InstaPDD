@@ -22,6 +22,7 @@ django.setup()
 from aiogram import Bot, Dispatcher, types, F, BaseMiddleware
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.client.default import DefaultBotProperties
+from django.utils.translation import gettext_lazy as _
 from aiogram.fsm.storage.memory import MemoryStorage
 from apps.category.models import Violator, Category
 from typing import Callable, Dict, Any, Awaitable
@@ -60,22 +61,22 @@ dp = Dispatcher(storage=MemoryStorage())
 UserModel = get_user_model()
 
 commands_list = (
-    ('/start', 'Start'),
-    ('/help', 'Help'),
-    ('/new_post', 'Create new post'),
-    ('/my_posts', 'My posts'),
-    ('/search', 'Search by license plate'),
-    ('/cancel', 'Cancel'),
+    ('/start', _('Start')),
+    ('/help', _('Help')),
+    ('/new_post', _('Create new post')),
+    ('/my_posts', _('My posts')),
+    ('/search', _('Search by license plate')),
+    ('/cancel', _('Cancel')),
 )
 
 commands = [types.BotCommand(command=com[0], description=com[1]) for com in commands_list]
 
-HELP_MESSAGE = '''
+HELP_MESSAGE = _('''
 Use /new_post command to create post.
 Follow the steps to fill the information.
 All fields are mandatory.
 Please fill the information carefully.
-'''
+''')
 
 ADMIN_ID_LIST = (22177377, 291338438)
 
@@ -84,12 +85,12 @@ YES = 'yes'
 NO = 'no'
 
 UPDATE_FIELDS_LIST = (
-    ('category_id', 'Category'),
-    ('photo', 'Photo'),
-    ('license_plate', 'License plate'),
-    ('location', 'Location'),
-    ('address', 'Address'),
-    ('description', 'Description'),
+    ('category_id', _('Category')),
+    ('photo', _('Photo')),
+    ('license_plate', _('License plate')),
+    ('location', _('Location')),
+    ('address', _('Address')),
+    ('description', _('Description')),
 )
 
 
@@ -128,20 +129,20 @@ class PostSearchForm(StatesGroup):
 
 
 STATE_TEXT_MAP = {
-    PostCreateForm.violator_id: 'New post violator',
-    PostCreateForm.category_id: 'New post category',
-    PostCreateForm.photo: 'New post step photo',
-    PostCreateForm.location: 'New post step location',
-    PostCreateForm.address: 'New post step address',
-    PostCreateForm.license_plate: 'New post step license plate',
-    PostCreateForm.description: 'New post step description',
-    PostSearchForm.license_plate: 'Search',
-    PostUpdateForm.location: 'Update post location',
-    PostUpdateForm.photo: 'Update post photo',
-    PostUpdateForm.address: 'Update post address',
-    PostUpdateForm.license_plate: 'Update post license plate',
-    PostUpdateForm.description: 'Update post description',
-    PostPageForm.page: 'Post list',
+    PostCreateForm.violator_id: _('New post violator'),
+    PostCreateForm.category_id: _('New post category'),
+    PostCreateForm.photo: _('New post step photo'),
+    PostCreateForm.location: _('New post step location'),
+    PostCreateForm.address: _('New post step address'),
+    PostCreateForm.license_plate: _('New post step license plate'),
+    PostCreateForm.description: _('New post step description'),
+    PostSearchForm.license_plate: _('Search'),
+    PostUpdateForm.location: _('Update post location'),
+    PostUpdateForm.photo: _('Update post photo'),
+    PostUpdateForm.address: _('Update post address'),
+    PostUpdateForm.license_plate: _('Update post license plate'),
+    PostUpdateForm.description: _('Update post description'),
+    PostPageForm.page: _('Post list'),
 }
 
 
@@ -187,10 +188,10 @@ class AlbumMiddleware(BaseMiddleware):
 async def start_cmd_handler(message: types.Message, state: FSMContext):
     await state.clear()
     start_inline_builder = InlineKeyboardBuilder()
-    start_inline_builder.button(text='Create new post', callback_data=f'start:post')
-    start_inline_builder.button(text='Help!', callback_data=f'start:help')
+    start_inline_builder.button(text=_('Create new post'), callback_data=f'start:post')
+    start_inline_builder.button(text=_('Help!'), callback_data=f'start:help')
     start_inline_builder.adjust(2)
-    await message.reply('Welcome to IPDD!', reply_markup=start_inline_builder.as_markup())
+    await message.reply(_('Welcome to IPDD!'), reply_markup=start_inline_builder.as_markup())
 
 
 @dp.message(Command('cancel'))
@@ -200,7 +201,7 @@ async def cancel_handler(message: Message, state: FSMContext) -> None:
     if current_state is None:
         return
     await state.clear()
-    msg = 'Cancelled state: %s' % STATE_TEXT_MAP[current_state]
+    msg = _('Cancelled: %s') % STATE_TEXT_MAP[current_state]
     await message.answer(msg, reply_markup=ReplyKeyboardRemove())
 
 
@@ -210,8 +211,8 @@ async def cancel_cb_handler(query: CallbackQuery, state: FSMContext):
     if current_state is None:
         return
     await state.clear()
-    msg = 'Cancelled state: %s' % STATE_TEXT_MAP[current_state]
-    await query.answer('Canceled.')
+    msg = _('Cancelled: %s') % STATE_TEXT_MAP[current_state]
+    await query.answer(_('Canceled.'))
     await bot.delete_message(query.from_user.id, query.message.message_id)
     await bot.send_message(query.from_user.id, msg, reply_markup=ReplyKeyboardRemove())
 
@@ -225,7 +226,7 @@ async def help_handler(message: Message, state: FSMContext):
 @dp.callback_query(F.data.casefold() == 'start:help')
 async def help_cb_handler(query: CallbackQuery, state: FSMContext):
     await state.clear()
-    await query.answer('Help!')
+    await query.answer(_('Help!'))
     await bot.send_message(query.from_user.id, HELP_MESSAGE, reply_markup=ReplyKeyboardRemove())
 
 
@@ -233,7 +234,7 @@ async def help_cb_handler(query: CallbackQuery, state: FSMContext):
 async def search_handler(message: Message, state: FSMContext):
     await state.clear()
     await state.set_state(PostSearchForm.license_plate)
-    await message.answer('Please enter some license plate number:', reply_markup=ReplyKeyboardRemove())
+    await message.answer(_('Please enter some license plate number:'), reply_markup=ReplyKeyboardRemove())
 
 
 @dp.message(Command('new_post'))
@@ -245,7 +246,7 @@ async def new_post(message: Message, state: FSMContext) -> None:
     violator_inline_builder.adjust(2)
     await state.set_state(PostCreateForm.violator_id)
     await message.answer(
-        'Please choose the violator:',
+        _('Please choose the violator:'),
         reply_markup=violator_inline_builder.as_markup()
     )
 
@@ -261,14 +262,14 @@ async def new_post_step_one_cb(query: CallbackQuery, state: FSMContext):
     data = try_parse_query_data(query.data)
     if not data:
         return
-    await query.answer('Violator selected.')
+    await query.answer(_('Violator selected.'))
     category_inline_builder = InlineKeyboardBuilder()
     async for obj in Category.objects.filter(violator_id=data.get('violator')):
         category_inline_builder.button(text=obj.name, callback_data=f'category:{obj.id}')
     category_inline_builder.adjust(1)
     await state.set_state(PostCreateForm.category_id)
     await bot.edit_message_text(
-        'Please select category:', query.from_user.id,
+        _('Please select category:'), query.from_user.id,
         query.message.message_id, reply_markup=category_inline_builder.as_markup()
     )
 
@@ -279,10 +280,10 @@ async def new_post_step_two_cb(query: CallbackQuery, state: FSMContext):
     if not data:
         return
     await state.update_data(category_id=data.get('category'))
-    await query.answer('category selected.')
+    await query.answer(_('category selected.'))
     await state.set_state(PostCreateForm.photo)
     await bot.edit_message_text(
-        'Please send photos, max 3 allowed:', query.from_user.id, query.message.message_id
+        _('Please send photos, max 3 allowed:'), query.from_user.id, query.message.message_id
     )
 
 
@@ -290,12 +291,12 @@ async def new_post_step_two_cb(query: CallbackQuery, state: FSMContext):
 async def new_post_step_three(message: Message, state: FSMContext, album: list[PhotoSize] = None):
     photos = album or [message.photo] if message.photo else []
     if not photos:
-        return await message.answer('Please send photos, max 3 allowed:')
+        return await message.answer(_('Please send photos, max 3 allowed:'))
     data = await state.get_data()
     photo_list = data.get('photo', [])
     ask_inline_builder = InlineKeyboardBuilder()
-    ask_inline_builder.button(text='Yes', callback_data=f'finish_photo:{YES}')
-    ask_inline_builder.button(text='No', callback_data=f'finish_photo:{NO}')
+    ask_inline_builder.button(text=_('Yes'), callback_data=f'finish_photo:{YES}')
+    ask_inline_builder.button(text=_('No'), callback_data=f'finish_photo:{NO}')
     if len(photo_list) < 3:
         for photo in photos[:3 - len(photo_list)]:
             # Each photo has 4 resolutions, the last one has the best quality.

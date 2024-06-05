@@ -4,7 +4,8 @@ from apps.post.models import Post
 
 
 class PostSerializer(serializers.ModelSerializer):
-    category_name = serializers.CharField(source='category.name', read_only=True)
+    category_name = serializers.SerializerMethodField(read_only=True)
+    # category_name = serializers.CharField(source='category.name', read_only=True)
     username = serializers.CharField(source='user.username', read_only=True)
     status_name = serializers.SerializerMethodField(read_only=True)
     images = serializers.SerializerMethodField(read_only=True)
@@ -14,6 +15,11 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         exclude = ()
+
+    def get_category_name(self, obj):
+        request = self.context.get('request')
+        if obj.category:
+            return obj.category.name
 
     def get_status_name(self, obj):
         return obj.get_status_display()

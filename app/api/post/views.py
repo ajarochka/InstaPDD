@@ -11,8 +11,14 @@ class PostListApiView(generics.ListAPIView):
     serializer_class = PostSerializer
     ordering_fields = ('created_at',)
 
+    def get_queryset(self):
+        return Post.objects.filter(status=PostStatus.APPROVED)
+
 
 class PostRetrieveApiView(generics.RetrieveAPIView):
     queryset = Post.objects.filter(status=PostStatus.APPROVED)
     renderer_classes = (CustomJsonRenderer,)
     serializer_class = PostSerializer
+
+    def get_queryset(self):
+        return Post.objects.filter(status=PostStatus.APPROVED)

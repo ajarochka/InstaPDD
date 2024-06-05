@@ -52,6 +52,8 @@ INSTALLED_APPS = [
     # Rest framework
     'rest_framework',
     'rest_framework.authtoken',
+    # Localization
+    'modeltranslation',
     # own apps
     'apps.post',
     'apps.core',
@@ -62,6 +64,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -105,27 +108,27 @@ WSGI_APPLICATION = 'IPDD.wsgi.application'
 #     }
 # }
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-#         'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
-#         'PORT': os.environ.get('DB_PORT', '5432'),
-#         'NAME': os.environ.get('DB_NAME', 'ipdd'),
-#         'USER': os.environ.get('DB_USER', 'ipdd'),
-#         'PASSWORD': os.environ.get('DB_PASS', 'ipdd'),
-#     },
-# }
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'HOST': os.environ.get('DB_HOST', '159.89.20.69'),
+        'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
         'PORT': os.environ.get('DB_PORT', '5432'),
         'NAME': os.environ.get('DB_NAME', 'ipdd'),
         'USER': os.environ.get('DB_USER', 'ipdd'),
         'PASSWORD': os.environ.get('DB_PASS', 'ipdd'),
     },
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.contrib.gis.db.backends.postgis',
+#         'HOST': os.environ.get('DB_HOST', '159.89.20.69'),
+#         'PORT': os.environ.get('DB_PORT', '5432'),
+#         'NAME': os.environ.get('DB_NAME', 'ipdd'),
+#         'USER': os.environ.get('DB_USER', 'ipdd'),
+#         'PASSWORD': os.environ.get('DB_PASS', 'ipdd'),
+#     },
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -150,7 +153,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ru'
 
 TIME_ZONE = 'Asia/Bishkek'
 
@@ -158,6 +161,13 @@ USE_I18N = True
 
 # USE_TZ = False
 
+MODELTRANSLATION_DEFAULT_LANGUAGE = 'ru'
+LOCALE_PATHS = [os.path.join(BASE_DIR, 'locale')]
+LANGUAGES = (
+    ('en', _('English')),
+    ('ru', _('Russian')),
+    ('ky', _('Kyrgyz')),
+)
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
