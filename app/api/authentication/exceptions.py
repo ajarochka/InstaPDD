@@ -11,7 +11,7 @@ class UserNotActiveError(APIException):
 
 class WrongPassword(APIException):
     status_code = http_status.HTTP_401_UNAUTHORIZED
-    default_detail = _('Wrong user password')
+    default_detail = _('Wrong password')
     default_code = 'invalid_credentials'
 
 

@@ -201,7 +201,7 @@ async def cancel_handler(message: Message, state: FSMContext) -> None:
     if current_state is None:
         return
     await state.clear()
-    msg = _('Cancelled: %s') % STATE_TEXT_MAP[current_state]
+    msg = f'{_("Cancelled")}: %s' % STATE_TEXT_MAP[current_state]
     await message.answer(msg, reply_markup=ReplyKeyboardRemove())
 
 
@@ -211,8 +211,8 @@ async def cancel_cb_handler(query: CallbackQuery, state: FSMContext):
     if current_state is None:
         return
     await state.clear()
-    msg = _('Cancelled: %s') % STATE_TEXT_MAP[current_state]
-    await query.answer(_('Canceled.'))
+    msg = f'{_("Cancelled")}: %s' % STATE_TEXT_MAP[current_state]
+    await query.answer(_('Canceled'))
     await bot.delete_message(query.from_user.id, query.message.message_id)
     await bot.send_message(query.from_user.id, msg, reply_markup=ReplyKeyboardRemove())
 
@@ -234,7 +234,7 @@ async def help_cb_handler(query: CallbackQuery, state: FSMContext):
 async def search_handler(message: Message, state: FSMContext):
     await state.clear()
     await state.set_state(PostSearchForm.license_plate)
-    await message.answer(_('Please enter some license plate number:'), reply_markup=ReplyKeyboardRemove())
+    await message.answer(_('Please send the license plate'), reply_markup=ReplyKeyboardRemove())
 
 
 @dp.message(Command('new_post'))
@@ -246,14 +246,14 @@ async def new_post(message: Message, state: FSMContext) -> None:
     violator_inline_builder.adjust(2)
     await state.set_state(PostCreateForm.violator_id)
     await message.answer(
-        _('Please choose the violator:'),
+        _('Please choose the violator'),
         reply_markup=violator_inline_builder.as_markup()
     )
 
 
 @dp.callback_query(F.data.casefold() == 'start:post')
 async def new_post_cb(query: CallbackQuery, state: FSMContext):
-    await query.answer('New post.')
+    await query.answer(_('New post'))
     return await new_post(query.message, state)
 
 
@@ -262,14 +262,14 @@ async def new_post_step_one_cb(query: CallbackQuery, state: FSMContext):
     data = try_parse_query_data(query.data)
     if not data:
         return
-    await query.answer(_('Violator selected.'))
+    await query.answer(_('Violator selected'))
     category_inline_builder = InlineKeyboardBuilder()
     async for obj in Category.objects.filter(violator_id=data.get('violator')):
         category_inline_builder.button(text=obj.name, callback_data=f'category:{obj.id}')
     category_inline_builder.adjust(1)
     await state.set_state(PostCreateForm.category_id)
     await bot.edit_message_text(
-        _('Please select category:'), query.from_user.id,
+        _('Please select category'), query.from_user.id,
         query.message.message_id, reply_markup=category_inline_builder.as_markup()
     )
 
@@ -280,10 +280,10 @@ async def new_post_step_two_cb(query: CallbackQuery, state: FSMContext):
     if not data:
         return
     await state.update_data(category_id=data.get('category'))
-    await query.answer(_('category selected.'))
+    await query.answer(_('category selected'))
     await state.set_state(PostCreateForm.photo)
     await bot.edit_message_text(
-        _('Please send photos, max 3 allowed:'), query.from_user.id, query.message.message_id
+        _('Please send photos, max 3 allowed'), query.from_user.id, query.message.message_id
     )
 
 
@@ -291,7 +291,7 @@ async def new_post_step_two_cb(query: CallbackQuery, state: FSMContext):
 async def new_post_step_three(message: Message, state: FSMContext, album: list[PhotoSize] = None):
     photos = album or [message.photo] if message.photo else []
     if not photos:
-        return await message.answer(_('Please send photos, max 3 allowed:'))
+        return await message.answer(_('Please send photos, max 3 allowed'))
     data = await state.get_data()
     photo_list = data.get('photo', [])
     ask_inline_builder = InlineKeyboardBuilder()
@@ -305,13 +305,13 @@ async def new_post_step_three(message: Message, state: FSMContext, album: list[P
     if len(photo_list) > 2:
         await state.set_state(PostCreateForm.location)
         ask_location_builder = InlineKeyboardBuilder()
-        ask_location_builder.button(text='Skip this step', callback_data=f'finish_location:{YES}')
+        ask_location_builder.button(text=_('Skip this step'), callback_data=f'finish_location:{YES}')
         await bot.send_message(
-            message.from_user.id, 'Please send the location:', reply_markup=ask_location_builder.as_markup()
+            message.from_user.id, _('Please send the location'), reply_markup=ask_location_builder.as_markup()
         )
     else:
         await bot.send_message(
-            message.from_user.id, 'Finish photo upload?',
+            message.from_user.id, _('Finish photo upload?'),
             reply_markup=ask_inline_builder.as_markup()
         )
 
@@ -322,28 +322,28 @@ async def new_post_step_three_cb(query: CallbackQuery, state: FSMContext):
     if not data:
         return
     if data.get('finish_photo') == YES:
-        await query.answer('Photo uploaded.')
+        await query.answer(_('Photo uploaded'))
         await state.set_state(PostCreateForm.location)
         ask_inline_builder = InlineKeyboardBuilder()
-        ask_inline_builder.button(text='Skip this step', callback_data=f'finish_location:{YES}')
+        ask_inline_builder.button(text=_('Skip this step'), callback_data=f'finish_location:{YES}')
         return await bot.edit_message_text(
-            'Please send the location:', query.from_user.id,
+            _('Please send the location'), query.from_user.id,
             query.message.message_id, reply_markup=ask_inline_builder.as_markup()
         )
-    await bot.edit_message_text('Please send more photo:', query.from_user.id, query.message.message_id)
+    await bot.edit_message_text(_('Please send more photo'), query.from_user.id, query.message.message_id)
 
 
 @dp.message(PostCreateForm.location)
 async def new_post_step_four(message: Message, state: FSMContext):
     if not message.location:
         ask_inline_builder = InlineKeyboardBuilder()
-        ask_inline_builder.button(text='Skip this step', callback_data=f'finish_location:{YES}')
-        return await message.answer('Please send the location:', reply_markup=ask_inline_builder.as_markup())
+        ask_inline_builder.button(text=_('Skip this step'), callback_data=f'finish_location:{YES}')
+        return await message.answer(_('Please send the location'), reply_markup=ask_inline_builder.as_markup())
     await state.update_data(location=message.location)
     await state.set_state(PostCreateForm.address)
     address_inline_builder = InlineKeyboardBuilder()
-    address_inline_builder.button(text='Skip this step', callback_data=f'finish_address:{YES}')
-    await message.answer('Please send the address:', reply_markup=address_inline_builder.as_markup())
+    address_inline_builder.button(text=_('Skip this step'), callback_data=f'finish_address:{YES}')
+    await message.answer(_('Please send the address'), reply_markup=address_inline_builder.as_markup())
 
 
 @dp.callback_query(F.data.casefold().startswith('finish_location:'), PostCreateForm.location)
@@ -352,17 +352,17 @@ async def new_post_step_four_cb(query: CallbackQuery, state: FSMContext):
     if not data:
         return
     if data.get('finish_location') == YES:
-        await query.answer('Location skipped.')
+        await query.answer(_('Location skipped'))
         await state.set_state(PostCreateForm.address)
         return await bot.edit_message_text(
-            'Please send the address:',
+            _('Please send the address'),
             query.from_user.id, query.message.message_id
         )
     # The following code is nlikely to be called.
     ask_inline_builder = InlineKeyboardBuilder()
-    ask_inline_builder.button(text='Skip this step', callback_data=f'finish_location:{YES}')
+    ask_inline_builder.button(text=_('Skip this step'), callback_data=f'finish_location:{YES}')
     await bot.edit_message_text(
-        'Please send the location:', query.from_user.id,
+        _('Please send the location'), query.from_user.id,
         query.message.message_id, reply_markup=ask_inline_builder.as_markup()
     )
 
@@ -373,20 +373,20 @@ async def new_post_step_five_cb(query: CallbackQuery, state: FSMContext):
     if not data:
         return
     if data.get('finish_address') == YES:
-        await query.answer('Address skipped.')
+        await query.answer(_('Address skipped'))
         ask_license_builder = InlineKeyboardBuilder()
-        ask_license_builder.button(text='Skip this step', callback_data=f'finish_license:{YES}')
+        ask_license_builder.button(text=_('Skip this step'), callback_data=f'finish_license:{YES}')
         await state.set_state(PostCreateForm.license_plate)
         return await bot.edit_message_text(
-            'Please send the license plate:',
+            _('Please send the license plate'),
             query.from_user.id, query.message.message_id,
             reply_markup=ask_license_builder.as_markup()
         )
     # The following code is nlikely to be called.
     ask_inline_builder = InlineKeyboardBuilder()
-    ask_inline_builder.button(text='Skip this step', callback_data=f'finish_address:{YES}')
+    ask_inline_builder.button(text=_('Skip this step'), callback_data=f'finish_address:{YES}')
     await bot.edit_message_text(
-        'Please send the address:', query.from_user.id,
+        _('Please send the address'), query.from_user.id,
         query.message.message_id, reply_markup=ask_inline_builder.as_markup()
     )
 
@@ -394,11 +394,11 @@ async def new_post_step_five_cb(query: CallbackQuery, state: FSMContext):
 @dp.message(PostCreateForm.address)
 async def new_post_step_five(message: Message, state: FSMContext):
     ask_inline_builder = InlineKeyboardBuilder()
-    ask_inline_builder.button(text='Skip this step', callback_data=f'finish_license:{YES}')
+    ask_inline_builder.button(text=_('Skip this step'), callback_data=f'finish_license:{YES}')
     await state.update_data(address=message.text)
     await state.set_state(PostCreateForm.license_plate)
     await bot.send_message(
-        message.from_user.id, 'Please enter the license plate:',
+        message.from_user.id, _('Please send the license plate'),
         reply_markup=ask_inline_builder.as_markup()
     )
 
@@ -409,17 +409,17 @@ async def new_post_step_six_cb(query: CallbackQuery, state: FSMContext):
     if not data:
         return
     if data.get('finish_license') == YES:
-        await query.answer('License plate skipped.')
+        await query.answer(_('License plate skipped'))
         await state.set_state(PostCreateForm.description)
         return await bot.edit_message_text(
-            'Please send the description:',
+            _('Please send the description'),
             query.from_user.id, query.message.message_id
         )
     # The following code is nlikely to be called.
     ask_inline_builder = InlineKeyboardBuilder()
-    ask_inline_builder.button(text='Skip this step', callback_data=f'finish_license:{YES}')
+    ask_inline_builder.button(text=_('Skip this step'), callback_data=f'finish_license:{YES}')
     await bot.edit_message_text(
-        'Please send the license plate:', query.from_user.id,
+        _('Please send the license plate'), query.from_user.id,
         query.message.message_id, reply_markup=ask_inline_builder.as_markup()
     )
 
@@ -428,7 +428,7 @@ async def new_post_step_six_cb(query: CallbackQuery, state: FSMContext):
 async def new_post_step_six(message: Message, state: FSMContext):
     await state.update_data(license_plate=message.text)
     await state.set_state(PostCreateForm.description)
-    await bot.send_message(message.from_user.id, 'Please enter the description:')
+    await bot.send_message(message.from_user.id, _('Please send the description'))
 
 
 @dp.message(PostCreateForm.description)
@@ -448,7 +448,7 @@ async def new_post_step_seven(message: Message, state: FSMContext):
             post=post, file=File(fp, photo.file_unique_id), file_id=photo.file_id
         )
     await state.clear()
-    msg = 'Thanks for your message, the request will be reviewed and we will return to you!'
+    msg = _('Thanks for your message, the request will be reviewed and we will return to you!')
     await message.answer(msg, reply_markup=ReplyKeyboardRemove())
 
 
@@ -459,22 +459,22 @@ async def my_posts(message: Message, state: FSMContext) -> None:
     user = None
     async for obj in UserModel.objects.filter(username=message.from_user.username):
         user = obj
-    if not user:
-        await message.answer('You do not posted anything yet.')
-        return
     post_inline_builder = InlineKeyboardBuilder()
     queryset = await sync_to_async(Post.objects.filter)(user=user)
     count = await sync_to_async(queryset.count)()
+    if not user or not count:
+        await message.answer(_('Your have no posts yet'))
+        return
     async for obj in queryset.order_by('-created_at')[:PAGE_SIZE]:
         ctg = await sync_to_async(Category.objects.get)(id=obj.category_id)
         txt = f'{ctg.name} | {obj.created_at.strftime("%d-%m-%Y %H:%M")} | {obj.get_status_display()}'
         post_inline_builder.row(InlineKeyboardButton(text=txt, callback_data=f'post:{obj.id}'))
     if count > PAGE_SIZE:
         post_inline_builder.row(
-            InlineKeyboardButton(text='Next >', callback_data=f'posts_page:2:user:{user.id}'),
+            InlineKeyboardButton(text=f'{_("Next")} >', callback_data=f'posts_page:2:user:{user.id}'),
             InlineKeyboardButton(text='>>', callback_data=f'posts_page:{int(-(count // -PAGE_SIZE))}:user:{user.id}')
         )
-    await message.answer('Your posts:', reply_markup=post_inline_builder.as_markup())
+    await message.answer(_('Your posts'), reply_markup=post_inline_builder.as_markup())
 
 
 @dp.callback_query(F.data.casefold().startswith('posts_page:'), PostPageForm.page)
@@ -486,8 +486,8 @@ async def posts_page_cb(query: CallbackQuery, state: FSMContext):
     page = data.get('posts_page', '1')
     user = await sync_to_async(UserModel.objects.get)(id=user_id)
     if not user_id or not page or not page.isdigit():
-        return await query.answer(f'Invalid page {page}.')
-    await query.answer(f'Posts page {page}.')
+        return await query.answer(f'{_("Page not found")} {page}')
+    await query.answer(f'{_("page")} {page}')
     page = int(page)
     await state.update_data(page=page)
     post_inline_builder = InlineKeyboardBuilder()
@@ -501,17 +501,17 @@ async def posts_page_cb(query: CallbackQuery, state: FSMContext):
     if page > 1:
         prev_next_btn.extend([
             InlineKeyboardButton(text='<<', callback_data=f'posts_page:1:user:{user_id}'),
-            InlineKeyboardButton(text='< Prev', callback_data=f'posts_page:{page - 1}:user:{user_id}')
+            InlineKeyboardButton(text=f'< {_("Prev")}', callback_data=f'posts_page:{page - 1}:user:{user_id}')
         ])
     if count > page * PAGE_SIZE:
         prev_next_btn.extend([
-            InlineKeyboardButton(text='Next >', callback_data=f'posts_page:{page + 1}:user:{user_id}'),
+            InlineKeyboardButton(text=f'{_("Next")} >', callback_data=f'posts_page:{page + 1}:user:{user_id}'),
             InlineKeyboardButton(text='>>', callback_data=f'posts_page:{int(-(count // -PAGE_SIZE))}:user:{user_id}')
         ])
     post_inline_builder.row(*prev_next_btn)
     await bot.delete_message(query.from_user.id, query.message.message_id)
     await bot.send_message(
-        query.from_user.id, 'Your posts:',
+        query.from_user.id, _('Your posts'),
         reply_markup=post_inline_builder.as_markup()
     )
 
@@ -524,8 +524,8 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
     post_id = data.get('post')
     photo_num = int(data.get('photo_num', 0))
     if not post_id or not post_id.isdigit():
-        return await query.answer(f'Invalid post id {post_id}.')
-    await query.answer('Post details.')
+        return await query.answer(f'{_("Invalid post id")} {post_id}')
+    await query.answer(_('Post details'))
     state_data = await state.get_data()
     page = state_data.get('page', 1)
     post_inline_builder = InlineKeyboardBuilder()
@@ -540,37 +540,37 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
     post_controls = []
     if post.status < PostStatus.REJECTED:
         post_controls.append(InlineKeyboardButton(
-            text='Update post', callback_data=f'post_action:{PostAction.UPDATE}:post:{post_id}')
+            text=_('Update post'), callback_data=f'post_action:{PostAction.UPDATE}:post:{post_id}')
         )
     if post.status < PostStatus.APPROVED:
         post_controls.append(InlineKeyboardButton(
-            text='Delete post', callback_data=f'post_action:{PostAction.DELETE}:post:{post_id}')
+            text=_('Delete post'), callback_data=f'post_action:{PostAction.DELETE}:post:{post_id}')
         )
     if photo_count > 1:
         num = (photo_num + 1) % photo_count
         post_controls.append(InlineKeyboardButton(
-            text='Next photo >', callback_data=f'post:{post_id}:photo_num:{num}')
+            text=f'{_("Next photo")} >', callback_data=f'post:{post_id}:photo_num:{num}')
         )
     post_inline_builder.row(*post_controls)
     post_inline_builder.row(InlineKeyboardButton(
-        text='< Back to list', callback_data=f'posts_page:{page}:user:{post.user_id}')
+        text=f'< {_("Back to list")}', callback_data=f'posts_page:{page}:user:{post.user_id}')
     )
     txt = Text(
-        Bold('Category'), ': ', ctg.name, '\n',
-        Bold('Creation date'), ': ', post.created_at.strftime("%d-%m-%Y %H:%M"), '\n',
-        Bold('Status'), ': ', post.get_status_display(), '\n',
+        Bold(_('Category')), ': ', ctg.name, '\n',
+        Bold(_('Creation date')), ': ', post.created_at.strftime("%d-%m-%Y %H:%M"), '\n',
+        Bold(_('Status')), ': ', post.get_status_display(), '\n',
     )
     if post.license_plate:
-        txt += Text(Bold('License plate'), ': ', post.license_plate, '\n')
+        txt += Text(Bold(_('License plate')), ': ', post.license_plate, '\n')
     if post.location:
         txt += Text(
-            Bold('Location'), ':\n',
-            '  Longitude: ', post.location.x, '\n',
-            '  Latitude; ', post.location.y, '\n'
+            Bold(_('Location')), ':\n',
+            f'  {_("Longitude")}: ', post.location.x, '\n',
+            f'  {_("Latitude")}; ', post.location.y, '\n'
         )
     txt += Text(
-        Bold('Address'), ': ', post.address, '\n',
-        Bold('Description'), ': ', post.description
+        Bold(_('Address')), ': ', post.address, '\n',
+        Bold(_('Description')), ': ', post.description
     )
     await bot.delete_message(query.from_user.id, query.message.message_id)
     # TODO: check if Telegram has the file for "file_id"
@@ -614,13 +614,13 @@ async def search_license_plate(message: Message, state: FSMContext):
     if count > 0:
         if count > PAGE_SIZE:
             post_inline_builder.row(
-                InlineKeyboardButton(text='Next >', callback_data=f'search_page:2'),
+                InlineKeyboardButton(text=f'{_("Next")} >', callback_data=f'search_page:2'),
                 InlineKeyboardButton(text='>>', callback_data=f'search_page:{int(-(count // -PAGE_SIZE))}')
             )
-        await message.answer('Found results:', reply_markup=post_inline_builder.as_markup())
+        await message.answer(_('Found posts'), reply_markup=post_inline_builder.as_markup())
     else:
         await state.clear()
-        await message.answer('No matches found.')
+        await message.answer(_('No matches found'))
 
 
 @dp.callback_query(F.data.casefold().startswith('search_page:'), PostSearchForm.license_plate)
@@ -632,8 +632,8 @@ async def search_license_plate_cb(query: CallbackQuery, state: FSMContext):
     state_data = await state.get_data()
     license_plate = state_data.get('license_plate')
     if not page or not page.isdigit():
-        return await query.answer(f'Invalid page {page}.')
-    await query.answer(f'Search page {page}.')
+        return await query.answer(f'{_("Invalid page")} {page}')
+    await query.answer(f'{_("Page")} {page}')
     page = int(page)
     post_inline_builder = InlineKeyboardBuilder()
     queryset = await sync_to_async(Post.objects.filter)(license_plate__iexact=license_plate, status=PostStatus.APPROVED)
@@ -646,17 +646,17 @@ async def search_license_plate_cb(query: CallbackQuery, state: FSMContext):
     if page > 1:
         prev_next_btn.extend([
             InlineKeyboardButton(text='<<', callback_data=f'search_page:1'),
-            InlineKeyboardButton(text='< Prev', callback_data=f'search_page:{page - 1}')
+            InlineKeyboardButton(text=f'< {_("Prev")}', callback_data=f'search_page:{page - 1}')
         ])
     if count > page * PAGE_SIZE:
         prev_next_btn.extend([
-            InlineKeyboardButton(text='Next >', callback_data=f'search_page:{page + 1}'),
+            InlineKeyboardButton(text=f'{_("Next")} >', callback_data=f'search_page:{page + 1}'),
             InlineKeyboardButton(text='>>', callback_data=f'search_page:{int(-(count // -PAGE_SIZE))}')
         ])
     post_inline_builder.row(*prev_next_btn)
     await bot.delete_message(query.from_user.id, query.message.message_id)
     await bot.send_message(
-        query.from_user.id, 'Found results:',
+        query.from_user.id, _('Found posts'),
         reply_markup=post_inline_builder.as_markup()
     )
 
@@ -670,8 +670,8 @@ async def search_license_plate_post_info_cb(query: CallbackQuery, state: FSMCont
     page = data.get('page', 1)
     photo_num = int(data.get('photo_num', 0))
     if not post_id or not post_id.isdigit():
-        return await query.answer(f'Invalid post id {post_id}.')
-    await query.answer('Post details.')
+        return await query.answer(f'{_("Invalid post id")} {post_id}')
+    await query.answer(_('Post details'))
     post_inline_builder = InlineKeyboardBuilder()
     post = await sync_to_async(Post.objects.get)(id=post_id)
     ctg = await sync_to_async(Category.objects.get)(id=post.category_id)
@@ -685,28 +685,28 @@ async def search_license_plate_post_info_cb(query: CallbackQuery, state: FSMCont
     if photo_count > 1:
         num = (photo_num + 1) % photo_count
         post_controls.append(InlineKeyboardButton(
-            text='Next photo >', callback_data=f'search_post_info:{post_id}:page:{page}:photo_num:{num}')
+            text=f'{_("Next photo")} >', callback_data=f'search_post_info:{post_id}:page:{page}:photo_num:{num}')
         )
     post_inline_builder.row(*post_controls)
     post_inline_builder.row(InlineKeyboardButton(
-        text='< Back to list', callback_data=f'search_page:{page}')
+        text=f'< {_("Back to list")}', callback_data=f'search_page:{page}')
     )
     txt = Text(
-        Bold('Category'), ': ', ctg.name, '\n',
-        Bold('Creation date'), ': ', post.created_at.strftime("%d-%m-%Y %H:%M"), '\n',
-        Bold('Status'), ': ', post.get_status_display(), '\n',
+        Bold(_('Category')), ': ', ctg.name, '\n',
+        Bold(_('Creation date')), ': ', post.created_at.strftime("%d-%m-%Y %H:%M"), '\n',
+        Bold(_('Status')), ': ', post.get_status_display(), '\n',
     )
     if post.license_plate:
-        txt += Text(Bold('License plate'), ': ', post.license_plate, '\n')
+        txt += Text(Bold(_('License plate')), ': ', post.license_plate, '\n')
     if post.location:
         txt += Text(
-            Bold('Location'), ':\n',
-            '  Longitude: ', post.location.x, '\n',
-            '  Latitude; ', post.location.y, '\n'
+            Bold(_('Location')), ':\n',
+            f'  {_("Longitude")}: ', post.location.x, '\n',
+            f'  {_("Latitude")}; ', post.location.y, '\n'
         )
     txt += Text(
-        Bold('Address'), ': ', post.address, '\n',
-        Bold('Description'), ': ', post.description
+        Bold(_('Address')), ': ', post.address, '\n',
+        Bold(_('Description')), ': ', post.description
     )
     await bot.delete_message(query.from_user.id, query.message.message_id)
     # TODO: check if Telegram has the file for "file_id"
@@ -732,15 +732,15 @@ async def post_update_cb(query: CallbackQuery, state: FSMContext):
     if not data:
         return
     post_id = data.get('post')
-    await query.answer('Post update.')
+    await query.answer(_('Post update'))
     update_inline_builder = InlineKeyboardBuilder()
     for f in UPDATE_FIELDS_LIST:
         update_inline_builder.button(text=f[1], callback_data=f'post_update:{f[0]}:post:{post_id}')
     update_inline_builder.adjust(2)
     update_inline_builder.row(InlineKeyboardButton(
-        text='< Back to post', callback_data=f'post:{post_id}'
+        text=f'< {_("Back to post")}', callback_data=f'post:{post_id}'
     ))
-    txt = 'Please select what you would like to update:'
+    txt = _('Please select what you would like to update')
     await bot.delete_message(query.from_user.id, query.message.message_id)
     await bot.send_message(
         query.from_user.id, txt, reply_markup=update_inline_builder.as_markup()
@@ -755,7 +755,7 @@ async def post_update_category_cb(query: CallbackQuery, state: FSMContext):
     category = await sync_to_async(Category.objects.get)(id=post.category_id)
     state_data = await state.get_data()
     page = state_data.get('page', 1)
-    await query.answer('Select category.')
+    await query.answer(_('Select category'))
     category_inline_builder = InlineKeyboardBuilder()
     async for obj in Category.objects.filter(violator_id=category.violator_id):
         category_inline_builder.button(
@@ -763,11 +763,11 @@ async def post_update_category_cb(query: CallbackQuery, state: FSMContext):
         )
     category_inline_builder.adjust(2)
     category_inline_builder.row(InlineKeyboardButton(
-        text='< Back to post', callback_data=f'post:{post_id}:page:{page}'
+        text=f'< {_("Back to post")}', callback_data=f'post:{post_id}:page:{page}'
     ))
     await state.clear()
     await state.set_state(PostCreateForm.category_id)
-    txt = Text('Your current category is: ', Bold(category.name))
+    txt = Text(f'{_("Your current category is")}: ', Bold(category.name))
     await bot.edit_message_text(
         txt.as_html(), query.from_user.id, query.message.message_id,
         reply_markup=category_inline_builder.as_markup()
@@ -787,11 +787,11 @@ async def post_update_category_complete_cb(query: CallbackQuery, state: FSMConte
     await state.update_data(page=page)
     post_inline_builder = InlineKeyboardBuilder()
     post_inline_builder.row(InlineKeyboardButton(
-        text='< Back to post', callback_data=f'post:{post_id}')
+        text=f'< {_("Back to post")}', callback_data=f'post:{post_id}')
     )
     await bot.delete_message(query.from_user.id, query.message.message_id)
     await bot.send_message(
-        query.from_user.id, 'Post category updated',
+        query.from_user.id, _('Category updated'),
         reply_markup=post_inline_builder.as_markup()
     )
 
@@ -805,7 +805,7 @@ async def post_update_photo_cb(query: CallbackQuery, state: FSMContext):
     photo_count = await sync_to_async(queryset.count)()
     state_data = await state.get_data()
     page = state_data.get('page', 1)
-    await query.answer('Update photo.')
+    await query.answer(_('Update photo'))
     photo_inline_builder = InlineKeyboardBuilder()
     photo = None
     photo_controls = []
@@ -815,21 +815,21 @@ async def post_update_photo_cb(query: CallbackQuery, state: FSMContext):
     if photo_count > 1:
         photo_controls.append(
             InlineKeyboardButton(
-                text='Delete', callback_data=f'post_update:delete_photo:post:{post_id}:photo:{photo.id}'
+                text=_('Delete'), callback_data=f'post_update:delete_photo:post:{post_id}:photo:{photo.id}'
             )
         )
     if photo_count < 3:
         photo_controls.append(InlineKeyboardButton(
-            text='Add photo', callback_data=f'post_update:add_photo:post:{post_id}:page:{page}')
+            text=_('Add photo'), callback_data=f'post_update:add_photo:post:{post_id}:page:{page}')
         )
     if photo_count > 1:
         num = (photo_num + 1) % photo_count
         photo_controls.append(InlineKeyboardButton(
-            text='Next photo >', callback_data=f'post_update:photo:post:{post_id}:page:{page}:photo_num:{num}')
+            text=f'{_("Next photo")} >', callback_data=f'post_update:photo:post:{post_id}:page:{page}:photo_num:{num}')
         )
     photo_inline_builder.row(*photo_controls)
     photo_inline_builder.row(InlineKeyboardButton(
-        text='< Back to post', callback_data=f'post:{post_id}')
+        text=f'< {_("Back to post")}', callback_data=f'post:{post_id}')
     )
     await bot.delete_message(query.from_user.id, query.message.message_id)
     # TODO: check if Telegram has the file for "file_id"
@@ -843,7 +843,7 @@ async def post_update_photo_cb(query: CallbackQuery, state: FSMContext):
             await sync_to_async(photo.save)()
     else:
         await bot.send_message(
-            query.from_user.id, 'No photo found.',
+            query.from_user.id, _('No photo found'),
             reply_markup=photo_inline_builder.as_markup()
         )
 
@@ -856,13 +856,13 @@ async def photo_update_delete_cb(query: CallbackQuery, state: FSMContext):
     photo = await sync_to_async(PostImage.objects.get)(id=photo_id)
     await sync_to_async(photo.delete)()
     await bot.delete_message(query.from_user.id, query.message.message_id)
-    await query.answer('Photo delete.')
+    await query.answer(_('Photo delete'))
     photo_inline_builder = InlineKeyboardBuilder()
     photo_inline_builder.row(InlineKeyboardButton(
-        text='< Back to post', callback_data=f'post_update:photo:post:{post_id}')
+        text=f'< {_("Back to post")}', callback_data=f'post_update:photo:post:{post_id}')
     )
     await bot.send_message(
-        query.from_user.id, 'Post photo deleted',
+        query.from_user.id, _('Photo deleted'),
         reply_markup=photo_inline_builder.as_markup()
     )
 
@@ -871,8 +871,8 @@ async def photo_update_delete_cb(query: CallbackQuery, state: FSMContext):
 async def photo_update_add_cb(query: CallbackQuery, state: FSMContext):
     await bot.delete_message(query.from_user.id, query.message.message_id)
     data = try_parse_query_data(query.data)
-    msg = 'Please send photos, max 3 allowed, if exceeded, will substitute existing photo:'
-    await query.answer('Add photo.')
+    msg = _('Please send photos, max 3 allowed, if exceeded, will substitute existing photo')
+    await query.answer(_('Add photo'))
     await state.set_state(PostUpdateForm.photo)
     await state.update_data(post_id=data.get('post'))
     await state.update_data(page=data.get('page'))
@@ -883,7 +883,7 @@ async def photo_update_add_cb(query: CallbackQuery, state: FSMContext):
 async def photo_update_add_complete(message: Message, state: FSMContext, album: list[PhotoSize] = None):
     photos = album or [message.photo] if message.photo else []
     if not photos:
-        msg = 'Please send photos, max 3 allowed, if exceeded, will substitute existing photo:'
+        msg = _('Please send photos, max 3 allowed, if exceeded, will substitute existing photo')
         return await message.answer(msg)
     photos = photos[:3]
     data = await state.get_data()
@@ -905,18 +905,18 @@ async def photo_update_add_complete(message: Message, state: FSMContext, album: 
     await state.clear()
     post_inline_builder = InlineKeyboardBuilder()
     post_inline_builder.row(InlineKeyboardButton(
-        text='< Back to post', callback_data=f'post:{post_id}:page:{page}')
+        text=f'< {_("Back to post")}', callback_data=f'post:{post_id}:page:{page}')
     )
-    await bot.send_message(message.from_user.id, 'Photo updated', reply_markup=post_inline_builder.as_markup())
+    await bot.send_message(message.from_user.id, _('Photo updated'), reply_markup=post_inline_builder.as_markup())
 
 
 @dp.callback_query(F.data.casefold().startswith(f'post_update:location'))
 async def post_update_location_cb(query: CallbackQuery, state: FSMContext):
     data = try_parse_query_data(query.data)
-    msg = 'Please send the location:'
+    msg = _('Please send the location')
     state_data = await state.get_data()
     page = state_data.get('page', 1)
-    await query.answer('Update location.')
+    await query.answer(_('Update location'))
     await state.set_state(PostUpdateForm.location)
     await state.update_data(post_id=data.get('post'))
     await state.update_data(page=page)
@@ -926,7 +926,7 @@ async def post_update_location_cb(query: CallbackQuery, state: FSMContext):
 @dp.message(PostUpdateForm.location)
 async def post_update_location_complete(message: Message, state: FSMContext):
     if not message.location:
-        return await message.answer('Please send the location:')
+        return await message.answer(_('Please send the location'))
     data = await state.get_data()
     post_id = data.get('post_id')
     page = data.get('page', 1)
@@ -936,18 +936,18 @@ async def post_update_location_complete(message: Message, state: FSMContext):
     await state.clear()
     post_inline_builder = InlineKeyboardBuilder()
     post_inline_builder.row(InlineKeyboardButton(
-        text='< Back to post', callback_data=f'post:{post_id}:page:{page}')
+        text=f'< {_("Back to post")}', callback_data=f'post:{post_id}:page:{page}')
     )
-    await bot.send_message(message.from_user.id, 'Location updated', reply_markup=post_inline_builder.as_markup())
+    await bot.send_message(message.from_user.id, _('Location updated'), reply_markup=post_inline_builder.as_markup())
 
 
 @dp.callback_query(F.data.casefold().startswith(f'post_update:address'))
 async def post_update_address_cb(query: CallbackQuery, state: FSMContext):
     data = try_parse_query_data(query.data)
-    msg = 'Please enter the address:'
+    msg = _('Please send the address')
     state_data = await state.get_data()
     page = state_data.get('page', 1)
-    await query.answer('Update address.')
+    await query.answer(_('Update address'))
     await state.set_state(PostUpdateForm.address)
     await state.update_data(post_id=data.get('post'))
     await state.update_data(page=page)
@@ -964,18 +964,18 @@ async def post_update_address_complete(message: Message, state: FSMContext):
     await state.clear()
     post_inline_builder = InlineKeyboardBuilder()
     post_inline_builder.row(InlineKeyboardButton(
-        text='< Back to post', callback_data=f'post:{post_id}:page:{page}')
+        text=f'< {_("Back to post")}', callback_data=f'post:{post_id}:page:{page}')
     )
-    await bot.send_message(message.from_user.id, 'Address updated', reply_markup=post_inline_builder.as_markup())
+    await bot.send_message(message.from_user.id, _('Address updated'), reply_markup=post_inline_builder.as_markup())
 
 
 @dp.callback_query(F.data.casefold().startswith(f'post_update:license_plate'))
 async def post_update_license_plate_cb(query: CallbackQuery, state: FSMContext):
     data = try_parse_query_data(query.data)
-    msg = 'Please enter the license plate:'
+    msg = _('Please send the license plate')
     state_data = await state.get_data()
     page = state_data.get('page', 1)
-    await query.answer('Update license plate.')
+    await query.answer(_('Update license plate'))
     await state.set_state(PostUpdateForm.license_plate)
     await state.update_data(post_id=data.get('post'))
     await state.update_data(page=page)
@@ -992,18 +992,19 @@ async def post_update_license_plate_complete(message: Message, state: FSMContext
     await state.clear()
     post_inline_builder = InlineKeyboardBuilder()
     post_inline_builder.row(InlineKeyboardButton(
-        text='< Back to post', callback_data=f'post:{post_id}:page:{page}')
+        text=f'< {_("Back to post")}', callback_data=f'post:{post_id}:page:{page}')
     )
-    await bot.send_message(message.from_user.id, 'License plate updated', reply_markup=post_inline_builder.as_markup())
+    await bot.send_message(message.from_user.id, _('License plate updated'),
+                           reply_markup=post_inline_builder.as_markup())
 
 
 @dp.callback_query(F.data.casefold().startswith(f'post_update:description'))
 async def post_update_description_cb(query: CallbackQuery, state: FSMContext):
     data = try_parse_query_data(query.data)
-    msg = 'Please enter the description:'
+    msg = _('Please send the description')
     state_data = await state.get_data()
     page = state_data.get('page', 1)
-    await query.answer('Update description.')
+    await query.answer(_('Update description'))
     await state.set_state(PostUpdateForm.description)
     await state.update_data(post_id=data.get('post'))
     await state.update_data(page=page)
@@ -1020,9 +1021,9 @@ async def post_update_description_complete(message: Message, state: FSMContext):
     await state.clear()
     post_inline_builder = InlineKeyboardBuilder()
     post_inline_builder.row(InlineKeyboardButton(
-        text='< Back to post', callback_data=f'post:{post_id}:page:{page}')
+        text=f'< {_("Back to post")}', callback_data=f'post:{post_id}:page:{page}')
     )
-    await bot.send_message(message.from_user.id, 'Description updated', reply_markup=post_inline_builder.as_markup())
+    await bot.send_message(message.from_user.id, _('Description updated'), reply_markup=post_inline_builder.as_markup())
 
 
 @dp.callback_query(F.data.casefold().startswith(f'post_action:{PostAction.DELETE}'), PostPageForm.page)
@@ -1031,16 +1032,16 @@ async def post_delete_cb(query: CallbackQuery, state: FSMContext):
     post_id = data.get('post')
     post = await sync_to_async(Post.objects.get)(id=post_id)
     await sync_to_async(post.delete)()
-    await query.answer('Post deleted.')
+    await query.answer(_('Post deleted'))
     post_inline_builder = InlineKeyboardBuilder()
     state_data = await state.get_data()
     page = state_data.get("page", 1)
     post_inline_builder.row(InlineKeyboardButton(
-        text='< Back to list', callback_data=f'posts_page:{page}:user:{post.user_id}')
+        text=f'< {_("Back to list")}', callback_data=f'posts_page:{page}:user:{post.user_id}')
     )
     await bot.delete_message(query.from_user.id, query.message.message_id)
     await bot.send_message(
-        query.from_user.id, 'Deleted post',
+        query.from_user.id, _('Post deleted'),
         reply_markup=post_inline_builder.as_markup()
     )
 
@@ -1051,16 +1052,16 @@ async def post_delete_cb(query: CallbackQuery, state: FSMContext):
     post_id = data.get('post')
     post = await sync_to_async(Post.objects.filter)(id=post_id)
     await sync_to_async(post.update)(status=PostStatus.APPROVED)
-    await query.answer('Post approved.')
+    await query.answer(_('Post approved'))
     post_inline_builder = InlineKeyboardBuilder()
     state_data = await state.get_data()
     page = state_data.get("page", 1)
     post_inline_builder.row(InlineKeyboardButton(
-        text='< Back to list', callback_data=f'pending:{page}')
+        text=f'< {_("Back to list")}', callback_data=f'pending:{page}')
     )
     await bot.delete_message(query.from_user.id, query.message.message_id)
     await bot.send_message(
-        query.from_user.id, 'Post approved',
+        query.from_user.id, _('Post approved'),
         reply_markup=post_inline_builder.as_markup()
     )
 
@@ -1071,16 +1072,16 @@ async def post_delete_cb(query: CallbackQuery, state: FSMContext):
     post_id = data.get('post')
     post = await sync_to_async(Post.objects.filter)(id=post_id)
     await sync_to_async(post.update)(status=PostStatus.REJECTED)
-    await query.answer('Post rejected.')
+    await query.answer(_('Post rejected'))
     post_inline_builder = InlineKeyboardBuilder()
     state_data = await state.get_data()
     page = state_data.get("page", 1)
     post_inline_builder.row(InlineKeyboardButton(
-        text='< Back to list', callback_data=f'pending:{page}')
+        text=f'< {_("Back to list")}', callback_data=f'pending:{page}')
     )
     await bot.delete_message(query.from_user.id, query.message.message_id)
     await bot.send_message(
-        query.from_user.id, 'Post rejected',
+        query.from_user.id, _('Post rejected'),
         reply_markup=post_inline_builder.as_markup()
     )
 
@@ -1099,10 +1100,10 @@ async def pending_posts(message: Message, state: FSMContext) -> None:
         post_inline_builder.row(InlineKeyboardButton(text=txt, callback_data=f'post_review:{obj.id}'))
     if count > PAGE_SIZE:
         post_inline_builder.row(
-            InlineKeyboardButton(text='Next >', callback_data=f'pending:2'),
+            InlineKeyboardButton(text=f'{_("Next")} >', callback_data=f'pending:2'),
             InlineKeyboardButton(text='>>', callback_data=f'pending:{int(-(count // -PAGE_SIZE))}')
         )
-    await message.answer('Pending posts:', reply_markup=post_inline_builder.as_markup())
+    await message.answer(_('Pending posts'), reply_markup=post_inline_builder.as_markup())
 
 
 @dp.callback_query(F.data.casefold().startswith('post_review:'), PostPageForm.page)
@@ -1113,8 +1114,8 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
     post_id = data.get('post_review')
     photo_num = int(data.get('photo_num', 0))
     if not post_id or not post_id.isdigit():
-        return await query.answer(f'Invalid post id {post_id}.')
-    await query.answer('Post review.')
+        return await query.answer(f'{_("Invalid post id")} {post_id}')
+    await query.answer(_('Post review'))
     state_data = await state.get_data()
     page = state_data.get('page', 1)
     post_inline_builder = InlineKeyboardBuilder()
@@ -1130,38 +1131,38 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
     post_controls = []
     if post.status < PostStatus.REJECTED:
         post_controls.append(InlineKeyboardButton(
-            text='Approve', callback_data=f'post_action:{PostAction.APPROVE}:post:{post_id}')
+            text=_('Approve'), callback_data=f'post_action:{PostAction.APPROVE}:post:{post_id}')
         )
     if post.status < PostStatus.APPROVED:
         post_controls.append(InlineKeyboardButton(
-            text='Reject', callback_data=f'post_action:{PostAction.REJECT}:post:{post_id}')
+            text=_('Reject'), callback_data=f'post_action:{PostAction.REJECT}:post:{post_id}')
         )
     if photo_count > 1:
         num = (photo_num + 1) % photo_count
         post_controls.append(InlineKeyboardButton(
-            text='Next photo >', callback_data=f'post_review:{post_id}:photo_num:{num}')
+            text=f'{_("Next photo")} >', callback_data=f'post_review:{post_id}:photo_num:{num}')
         )
     post_inline_builder.row(*post_controls)
     post_inline_builder.row(InlineKeyboardButton(
-        text='< Back to list', callback_data=f'pending:{page}')
+        text=f'< {_("Back to list")}', callback_data=f'pending:{page}')
     )
     txt = Text(
-        Bold('User'), ': ', user.username, '\n',
-        Bold('Category'), ': ', ctg.name, '\n',
-        Bold('Creation date'), ': ', post.created_at.strftime("%d-%m-%Y %H:%M"), '\n',
-        Bold('Status'), ': ', post.get_status_display(), '\n',
+        Bold(_('User')), ': ', user.username, '\n',
+        Bold(_('Category')), ': ', ctg.name, '\n',
+        Bold(_('Creation date')), ': ', post.created_at.strftime("%d-%m-%Y %H:%M"), '\n',
+        Bold(_('Status')), ': ', post.get_status_display(), '\n',
     )
     if post.license_plate:
-        txt += Text(Bold('License plate'), ': ', post.license_plate, '\n')
+        txt += Text(Bold(_('License plate')), ': ', post.license_plate, '\n')
     if post.location:
         txt += Text(
-            Bold('Location'), ':\n',
-            '  Longitude: ', post.location.x, '\n',
-            '  Latitude; ', post.location.y, '\n'
+            Bold(_('Location')), ':\n',
+            f'  {_("Longitude")}: ', post.location.x, '\n',
+            f'  {_("Latitude")}; ', post.location.y, '\n'
         )
     txt += Text(
-        Bold('Address'), ': ', post.address, '\n',
-        Bold('Description'), ': ', post.description
+        Bold(_('Address')), ': ', post.address, '\n',
+        Bold(_('Description')), ': ', post.description
     )
     await bot.delete_message(query.from_user.id, query.message.message_id)
     # TODO: check if Telegram has the file for "file_id"
@@ -1188,8 +1189,8 @@ async def posts_page_cb(query: CallbackQuery, state: FSMContext):
         return
     page = data.get('pending', '1')
     if not page or not page.isdigit():
-        return await query.answer(f'Invalid page {page}.')
-    await query.answer(f'Pending posts page {page}.')
+        return await query.answer(f'{_("Invalid page")} {page}')
+    await query.answer(f'Page {page}')
     page = int(page)
     await state.update_data(page=page)
     post_inline_builder = InlineKeyboardBuilder()
@@ -1204,17 +1205,17 @@ async def posts_page_cb(query: CallbackQuery, state: FSMContext):
     if page > 1:
         prev_next_btn.extend([
             InlineKeyboardButton(text='<<', callback_data=f'pending:1'),
-            InlineKeyboardButton(text='< Prev', callback_data=f'pending:{page - 1}')
+            InlineKeyboardButton(text=f'< {_("Prev")}', callback_data=f'pending:{page - 1}')
         ])
     if count > page * PAGE_SIZE:
         prev_next_btn.extend([
-            InlineKeyboardButton(text='Next >', callback_data=f'pending:{page + 1}'),
+            InlineKeyboardButton(text=f'{_("Next")} >', callback_data=f'pending:{page + 1}'),
             InlineKeyboardButton(text='>>', callback_data=f'pending:{int(-(count // -PAGE_SIZE))}')
         ])
     post_inline_builder.row(*prev_next_btn)
     await bot.delete_message(query.from_user.id, query.message.message_id)
     await bot.send_message(
-        query.from_user.id, 'Pending posts:',
+        query.from_user.id, _('Pending posts'),
         reply_markup=post_inline_builder.as_markup()
     )
 

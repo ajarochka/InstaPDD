@@ -1,0 +1,644 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-06-06 22:14+0600\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+#: IPDD/jet_config.py:5
+msgid "Posts"
+msgstr ""
+
+#: IPDD/jet_config.py:6
+msgid "Violators"
+msgstr ""
+
+#: IPDD/jet_config.py:7
+msgid "Categories"
+msgstr ""
+
+#: IPDD/jet_config.py:9
+msgid "Authentication"
+msgstr ""
+
+#: IPDD/jet_config.py:10
+msgid "Users"
+msgstr ""
+
+#: IPDD/jet_config.py:11
+msgid "Groups"
+msgstr ""
+
+#: IPDD/jet_config.py:12
+msgid "Permissions"
+msgstr ""
+
+#: IPDD/settings.py:167
+msgid "English"
+msgstr ""
+
+#: IPDD/settings.py:168
+msgid "Russian"
+msgstr ""
+
+#: IPDD/settings.py:169
+msgid "Kyrgyz"
+msgstr ""
+
+#: IPDD/settings.py:195
+msgid "API authentication token lifetime."
+msgstr ""
+
+#: api/authentication/exceptions.py:8
+msgid "User is not active"
+msgstr ""
+
+#: api/authentication/exceptions.py:14
+msgid "Wrong password"
+msgstr ""
+
+#: api/authentication/exceptions.py:20
+msgid "Username already in use"
+msgstr ""
+
+#: api/statistics/choices.py:6
+msgid "Daily"
+msgstr ""
+
+#: api/statistics/choices.py:7
+msgid "Hourly"
+msgstr ""
+
+#: apps/post/admin.py:30
+msgid "Preview"
+msgstr ""
+
+#: apps/post/admin.py:48 bot/main.py:561 bot/main.py:697 bot/main.py:1153
+msgid "Status"
+msgstr ""
+
+#: apps/post/choices.py:6
+msgid "Pending"
+msgstr ""
+
+#: apps/post/choices.py:7
+msgid "Rejected"
+msgstr ""
+
+#: apps/post/choices.py:8
+msgid "Approved"
+msgstr ""
+
+#: bot/main.py:64
+msgid "Start"
+msgstr ""
+
+#: bot/main.py:65
+msgid "Help"
+msgstr ""
+
+#: bot/main.py:66 bot/main.py:191
+msgid "Create new post"
+msgstr ""
+
+#: bot/main.py:67
+msgid "My posts"
+msgstr ""
+
+#: bot/main.py:68
+msgid "Search by license plate"
+msgstr ""
+
+#: bot/main.py:69
+msgid "Cancel"
+msgstr ""
+
+#: bot/main.py:74
+msgid ""
+"\n"
+"Use /new_post command to create post.\n"
+"Follow the steps to fill the information.\n"
+"All fields are mandatory.\n"
+"Please fill the information carefully.\n"
+msgstr ""
+
+#: bot/main.py:88 bot/main.py:559 bot/main.py:695 bot/main.py:1151
+msgid "Category"
+msgstr ""
+
+#: bot/main.py:89 templates/dashboard/modules/customer_points_earned.html:42
+#: templates/dashboard/modules/customer_points_used.html:42
+msgid "Photo"
+msgstr ""
+
+#: bot/main.py:90 bot/main.py:564 bot/main.py:700 bot/main.py:1156
+msgid "License plate"
+msgstr ""
+
+#: bot/main.py:91 bot/main.py:567 bot/main.py:703 bot/main.py:1159
+msgid "Location"
+msgstr ""
+
+#: bot/main.py:92 bot/main.py:572 bot/main.py:708 bot/main.py:1164
+msgid "Address"
+msgstr ""
+
+#: bot/main.py:93 bot/main.py:573 bot/main.py:709 bot/main.py:1165
+msgid "Description"
+msgstr ""
+
+#: bot/main.py:132
+msgid "New post violator"
+msgstr ""
+
+#: bot/main.py:133
+msgid "New post category"
+msgstr ""
+
+#: bot/main.py:134
+msgid "New post step photo"
+msgstr ""
+
+#: bot/main.py:135
+msgid "New post step location"
+msgstr ""
+
+#: bot/main.py:136
+msgid "New post step address"
+msgstr ""
+
+#: bot/main.py:137
+msgid "New post step license plate"
+msgstr ""
+
+#: bot/main.py:138
+msgid "New post step description"
+msgstr ""
+
+#: bot/main.py:139 templates/admin/base.html:407
+msgid "Search"
+msgstr ""
+
+#: bot/main.py:140
+msgid "Update post location"
+msgstr ""
+
+#: bot/main.py:141
+msgid "Update post photo"
+msgstr ""
+
+#: bot/main.py:142
+msgid "Update post address"
+msgstr ""
+
+#: bot/main.py:143
+msgid "Update post license plate"
+msgstr ""
+
+#: bot/main.py:144
+msgid "Update post description"
+msgstr ""
+
+#: bot/main.py:145
+msgid "Post list"
+msgstr ""
+
+#: bot/main.py:192 bot/main.py:229
+msgid "Help!"
+msgstr ""
+
+#: bot/main.py:194
+msgid "Welcome to IPDD!"
+msgstr ""
+
+#: bot/main.py:215
+msgid "Canceled"
+msgstr ""
+
+#: bot/main.py:249
+msgid "Please choose the violator"
+msgstr ""
+
+#: bot/main.py:256
+msgid "New post"
+msgstr ""
+
+#: bot/main.py:265
+msgid "Violator selected"
+msgstr ""
+
+#: bot/main.py:272
+msgid "Please select category"
+msgstr ""
+
+#: bot/main.py:283
+msgid "category selected"
+msgstr ""
+
+#: bot/main.py:286 bot/main.py:294
+msgid "Please send photos, max 3 allowed"
+msgstr ""
+
+#: bot/main.py:298
+msgid "Yes"
+msgstr ""
+
+#: bot/main.py:299
+msgid "No"
+msgstr ""
+
+#: bot/main.py:308 bot/main.py:328 bot/main.py:340 bot/main.py:345
+#: bot/main.py:363 bot/main.py:378 bot/main.py:387 bot/main.py:397
+#: bot/main.py:420
+msgid "Skip this step"
+msgstr ""
+
+#: bot/main.py:310 bot/main.py:330 bot/main.py:341 bot/main.py:365
+#: bot/main.py:916 bot/main.py:929
+msgid "Please send the location"
+msgstr ""
+
+#: bot/main.py:314
+msgid "Finish photo upload?"
+msgstr ""
+
+#: bot/main.py:325
+msgid "Photo uploaded"
+msgstr ""
+
+#: bot/main.py:333
+msgid "Please send more photo"
+msgstr ""
+
+#: bot/main.py:346 bot/main.py:358 bot/main.py:389
+msgid "Please send the address"
+msgstr ""
+
+#: bot/main.py:355
+msgid "Location skipped"
+msgstr ""
+
+#: bot/main.py:376
+msgid "Address skipped"
+msgstr ""
+
+#: bot/main.py:381 bot/main.py:401 bot/main.py:422
+msgid "Please send the license plate"
+msgstr ""
+
+#: bot/main.py:412
+msgid "License plate skipped"
+msgstr ""
+
+#: bot/main.py:415
+msgid "Please send the description"
+msgstr ""
+
+#: bot/main.py:451
+msgid ""
+"Thanks for your message, the request will be reviewed and we will return to "
+"you!"
+msgstr ""
+
+#: bot/main.py:466
+msgid "Your have no posts yet"
+msgstr ""
+
+#: bot/main.py:477 bot/main.py:514
+msgid "Your posts"
+msgstr ""
+
+#: bot/main.py:528 bot/main.py:674
+msgid "Post details"
+msgstr ""
+
+#: bot/main.py:543
+msgid "Update post"
+msgstr ""
+
+#: bot/main.py:547
+msgid "Delete post"
+msgstr ""
+
+#: bot/main.py:560 bot/main.py:696 bot/main.py:1152
+msgid "Creation date"
+msgstr ""
+
+#: bot/main.py:620 bot/main.py:659
+msgid "Found posts
+msgstr ""
+
+#: bot/main.py:623
+msgid "No matches found"
+msgstr ""
+
+#: bot/main.py:735
+msgid "Post update"
+msgstr ""
+
+#: bot/main.py:743
+msgid "Please select what you would like to update"
+msgstr ""
+
+#: bot/main.py:758
+msgid "Select category"
+msgstr ""
+
+#: bot/main.py:794
+msgid "Category updated"
+msgstr ""
+
+#: bot/main.py:808
+msgid "Update photo"
+msgstr ""
+
+#: bot/main.py:818
+msgid "Delete"
+msgstr ""
+
+#: bot/main.py:823 bot/main.py:875
+msgid "Add photo"
+msgstr ""
+
+#: bot/main.py:846
+msgid "No photo found"
+msgstr ""
+
+#: bot/main.py:859
+msgid "Photo delete"
+msgstr ""
+
+#: bot/main.py:865
+msgid "Photo deleted"
+msgstr ""
+
+#: bot/main.py:874 bot/main.py:886
+msgid ""
+"Please send photos, max 3 allowed, if exceeded, will substitute existing "
+"photo"
+msgstr ""
+
+#: bot/main.py:910
+msgid "Photo updated"
+msgstr ""
+
+#: bot/main.py:919
+msgid "Update location"
+msgstr ""
+
+#: bot/main.py:941
+msgid "Location updated"
+msgstr ""
+
+#: bot/main.py:947
+msgid "Please enter the address"
+msgstr ""
+
+#: bot/main.py:950
+msgid "Update address"
+msgstr ""
+
+#: bot/main.py:969
+msgid "Address updated"
+msgstr ""
+
+#: bot/main.py:975
+msgid "Please enter the license plate"
+msgstr ""
+
+#: bot/main.py:978
+msgid "Update license plate"
+msgstr ""
+
+#: bot/main.py:997
+msgid "License plate updated"
+msgstr ""
+
+#: bot/main.py:1007
+msgid "Update description"
+msgstr ""
+
+#: bot/main.py:1026
+msgid "Description updated"
+msgstr ""
+
+#: bot/main.py:1035
+msgid "Post deleted"
+msgstr ""
+
+#: bot/main.py:1044
+msgid "Deleted post"
+msgstr ""
+
+#: bot/main.py:1055 bot/main.py:1064
+msgid "Post approved"
+msgstr ""
+
+#: bot/main.py:1075 bot/main.py:1084
+msgid "Post rejected"
+msgstr ""
+
+#: bot/main.py:1106 bot/main.py:1218
+msgid "Pending posts"
+msgstr ""
+
+#: bot/main.py:1118
+msgid "Post review"
+msgstr ""
+
+#: bot/main.py:1134
+msgid "Approve"
+msgstr ""
+
+#: bot/main.py:1138
+msgid "Reject"
+msgstr ""
+
+#: bot/main.py:1150
+msgid "User"
+msgstr ""
+
+#: dashboard/dashboard_modules.py:61
+msgid "Posts activity"
+msgstr ""
+
+#: dashboard/forms.py:8
+msgid "From date"
+msgstr ""
+
+#: dashboard/forms.py:9
+msgid "To date"
+msgstr ""
+
+#: templates/admin/base.html:98
+msgid "Welcome,"
+msgstr ""
+
+#: templates/admin/base.html:103 templates/admin/base.html:225
+msgid "View site"
+msgstr ""
+
+#: templates/admin/base.html:108 templates/admin/base.html:234
+msgid "Documentation"
+msgstr ""
+
+#: templates/admin/base.html:112
+msgid "Change password"
+msgstr ""
+
+#: templates/admin/base.html:114
+msgid "Log out"
+msgstr ""
+
+#: templates/admin/base.html:124 templates/admin/base.html:217
+msgid "Home"
+msgstr ""
+
+#: templates/admin/base.html:197
+msgid "back"
+msgstr ""
+
+#: templates/admin/base.html:284
+msgid "Applications"
+msgstr ""
+
+#: templates/admin/base.html:313
+msgid "Hide applications"
+msgstr ""
+
+#: templates/admin/base.html:314
+msgid "Show hidden"
+msgstr ""
+
+#: templates/admin/base.html:345 templates/admin/base.html:365
+msgid "Add bookmark"
+msgstr ""
+
+#: templates/admin/base.html:348
+msgid "Title"
+msgstr ""
+
+#: templates/admin/base.html:350
+msgid "URL"
+msgstr ""
+
+#: templates/admin/base.html:359
+msgid "Delete bookmark"
+msgstr ""
+
+#: templates/admin/base.html:360
+msgid "Are you sure want to delete this bookmark?"
+msgstr ""
+
+#: templates/admin/base.html:369
+msgid "bookmarks"
+msgstr ""
+
+#: templates/admin/base.html:378 templates/admin/base.html:385
+msgid "Remove"
+msgstr ""
+
+#: templates/admin/base.html:414
+msgid "Application page"
+msgstr ""
+
+#: templates/admin/base.html:442
+msgid "current theme"
+msgstr ""
+
+#: templates/admin/post/post/change_form.html:18
+msgid "Image preview"
+msgstr ""
+
+#: templates/dashboard/custom_dashboard.html:78
+msgid "Delete widget"
+msgstr ""
+
+#: templates/dashboard/custom_dashboard.html:79
+msgid "Are you sure want to delete this widget?"
+msgstr ""
+
+#: templates/dashboard/custom_dashboard_tools.html:11
+#: templates/dashboard/custom_dashboard_tools.html:12
+#: templates/dashboard/custom_dashboard_tools.html:18
+msgid "Reset widgets"
+msgstr ""
+
+#: templates/dashboard/custom_dashboard_tools.html:19
+msgid "Are you sure want to reset widgets?"
+msgstr ""
+
+#: templates/dashboard/modules/active_customer_statistics.html:4
+msgid "PAU"
+msgstr ""
+
+#: templates/dashboard/modules/activity_info.html:72
+#: templates/dashboard/modules/average_post_statistics.html:4
+msgid "Orders"
+msgstr ""
+
+#: templates/dashboard/modules/average_post_statistics.html:14
+msgid "Total"
+msgstr ""
+
+#: templates/dashboard/modules/average_post_statistics.html:15
+msgid "Average"
+msgstr ""
+
+#: templates/dashboard/modules/customer_points_earned.html:7
+msgid "Top points earned users"
+msgstr ""
+
+#: templates/dashboard/modules/customer_points_earned.html:47
+#: templates/dashboard/modules/customer_points_used.html:47
+msgid "Count"
+msgstr ""
+
+#: templates/dashboard/modules/customer_points_earned.html:51
+#: templates/dashboard/modules/customer_points_used.html:51
+msgid "Name"
+msgstr ""
+
+#: templates/dashboard/modules/customer_points_used.html:7
+msgid "Top points used users"
+msgstr ""
+
+#: templates/dashboard/modules/customer_total.html:4
+msgid "Total customers"
+msgstr ""
+
+#: templates/dashboard/modules/new_customer_statistics.html:4
+msgid "New customers"
+msgstr ""
+
+#: templates/dashboard/modules/point_statistics.html:4
+msgid "Points"
+msgstr ""
+
+#: templates/dashboard/modules/point_statistics.html:8
+msgid "Earned"
+msgstr ""
+
+#: templates/dashboard/modules/point_statistics.html:10
+msgid "Used"
+msgstr ""
+
+#: templates/dashboard/modules/post_statistics.html:4
+msgid "Revenue"
+msgstr ""
+
+#: templates/dashboard/modules/post_total.html:4
+msgid "Total posts"
+msgstr ""
