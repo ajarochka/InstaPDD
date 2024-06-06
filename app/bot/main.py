@@ -19,10 +19,10 @@ import django
 
 django.setup()
 
+from aiogram.utils.i18n import gettext as _, I18n, SimpleI18nMiddleware
 from aiogram import Bot, Dispatcher, types, F, BaseMiddleware
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.client.default import DefaultBotProperties
-from django.utils.translation import gettext_lazy as _
 from aiogram.fsm.storage.memory import MemoryStorage
 from apps.category.models import Violator, Category
 from typing import Callable, Dict, Any, Awaitable
@@ -58,25 +58,29 @@ bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTM
 
 dp = Dispatcher(storage=MemoryStorage())
 
+LOCALE_PATH = os.path.join(BASE_DIR, 'locale')
+i18n_ctx = I18n(path=LOCALE_PATH, default_locale="ru", domain="django")
+# i18n_ctx = I18n(path='locale', default_locale="ru", domain="messages")
+
 UserModel = get_user_model()
 
 commands_list = (
-    ('/start', _('Start')),
-    ('/help', _('Help')),
-    ('/new_post', _('Create new post')),
-    ('/my_posts', _('My posts')),
-    ('/search', _('Search by license plate')),
-    ('/cancel', _('Cancel')),
+    ('/start', 'Start'),
+    ('/help', 'Help'),
+    ('/new_post', 'Create new post'),
+    ('/my_posts', 'My posts'),
+    ('/search', 'Search by license plate'),
+    ('/cancel', 'Cancel'),
 )
 
 commands = [types.BotCommand(command=com[0], description=com[1]) for com in commands_list]
 
-HELP_MESSAGE = _('''
+HELP_MESSAGE = '''
 Use /new_post command to create post.
 Follow the steps to fill the information.
 All fields are mandatory.
 Please fill the information carefully.
-''')
+'''
 
 ADMIN_ID_LIST = (22177377, 291338438)
 
@@ -85,12 +89,12 @@ YES = 'yes'
 NO = 'no'
 
 UPDATE_FIELDS_LIST = (
-    ('category_id', _('Category')),
-    ('photo', _('Photo')),
-    ('license_plate', _('License plate')),
-    ('location', _('Location')),
-    ('address', _('Address')),
-    ('description', _('Description')),
+    ('category_id', 'Category'),
+    ('photo', 'Photo'),
+    ('license_plate', 'License plate'),
+    ('location', 'Location'),
+    ('address', 'Address'),
+    ('description', 'Description'),
 )
 
 
@@ -129,20 +133,20 @@ class PostSearchForm(StatesGroup):
 
 
 STATE_TEXT_MAP = {
-    PostCreateForm.violator_id: _('New post violator'),
-    PostCreateForm.category_id: _('New post category'),
-    PostCreateForm.photo: _('New post step photo'),
-    PostCreateForm.location: _('New post step location'),
-    PostCreateForm.address: _('New post step address'),
-    PostCreateForm.license_plate: _('New post step license plate'),
-    PostCreateForm.description: _('New post step description'),
-    PostSearchForm.license_plate: _('Search'),
-    PostUpdateForm.location: _('Update post location'),
-    PostUpdateForm.photo: _('Update post photo'),
-    PostUpdateForm.address: _('Update post address'),
-    PostUpdateForm.license_plate: _('Update post license plate'),
-    PostUpdateForm.description: _('Update post description'),
-    PostPageForm.page: _('Post list'),
+    PostCreateForm.violator_id: 'New post violator',
+    PostCreateForm.category_id: 'New post category',
+    PostCreateForm.photo: 'New post step photo',
+    PostCreateForm.location: 'New post step location',
+    PostCreateForm.address: 'New post step address',
+    PostCreateForm.license_plate: 'New post step license plate',
+    PostCreateForm.description: 'New post step description',
+    PostSearchForm.license_plate: 'Search',
+    PostUpdateForm.location: 'Update post location',
+    PostUpdateForm.photo: 'Update post photo',
+    PostUpdateForm.address: 'Update post address',
+    PostUpdateForm.license_plate: 'Update post license plate',
+    PostUpdateForm.description: 'Update post description',
+    PostPageForm.page: 'Post list',
 }
 
 
@@ -1223,6 +1227,7 @@ async def posts_page_cb(query: CallbackQuery, state: FSMContext):
 async def main() -> None:
     await bot.set_my_commands(commands)
     dp.message.middleware(AlbumMiddleware(0.04))
+    SimpleI18nMiddleware(i18n_ctx).setup(dp)
     await dp.start_polling(bot)
 
 

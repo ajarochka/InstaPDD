@@ -463,15 +463,15 @@ msgstr "Пользователь"
 
 #: dashboard/dashboard_modules.py:61
 msgid "Posts activity"
-msgstr ""
+msgstr "Активность постов"
 
 #: dashboard/forms.py:8
 msgid "From date"
-msgstr ""
+msgstr "С даты"
 
 #: dashboard/forms.py:9
 msgid "To date"
-msgstr ""
+msgstr "По дату"
 
 #: templates/admin/base.html:98
 msgid "Welcome,"
@@ -551,7 +551,7 @@ msgstr ""
 
 #: templates/admin/post/post/change_form.html:18
 msgid "Image preview"
-msgstr ""
+msgstr "Предосмотр изображения"
 
 #: templates/dashboard/custom_dashboard.html:78
 msgid "Delete widget"
@@ -608,11 +608,11 @@ msgstr ""
 
 #: templates/dashboard/modules/customer_total.html:4
 msgid "Total customers"
-msgstr ""
+msgstr "Всего клиентов"
 
 #: templates/dashboard/modules/new_customer_statistics.html:4
 msgid "New customers"
-msgstr ""
+msgstr "Новые клиенты"
 
 #: templates/dashboard/modules/point_statistics.html:4
 msgid "Points"
@@ -628,8 +628,8 @@ msgstr ""
 
 #: templates/dashboard/modules/post_statistics.html:4
 msgid "Revenue"
-msgstr ""
+msgstr "Выручка"
 
 #: templates/dashboard/modules/post_total.html:4
 msgid "Total posts"
-msgstr ""
+msgstr "Всего постов"
