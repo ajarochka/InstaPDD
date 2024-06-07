@@ -35,6 +35,7 @@ from aiogram.fsm.context import FSMContext
 from django.contrib.gis.geos import Point
 from apps.post.choices import PostStatus
 from asgiref.sync import sync_to_async
+from django.utils import translation
 from aiogram.enums import ParseMode
 from django.core.files import File
 from django.db.models import Count
@@ -58,8 +59,9 @@ bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTM
 
 dp = Dispatcher(storage=MemoryStorage())
 
+DEFAULT_LOCALE = 'ru'
 LOCALE_PATH = os.path.join(BASE_DIR, 'locale')
-i18n_ctx = I18n(path=LOCALE_PATH, default_locale="ru", domain="django")
+i18n_ctx = I18n(path=LOCALE_PATH, default_locale=DEFAULT_LOCALE, domain='django')
 # i18n_ctx = I18n(path='locale', default_locale="ru", domain="messages")
 
 UserModel = get_user_model()
@@ -75,11 +77,8 @@ commands_list = (
 
 commands = [types.BotCommand(command=com[0], description=com[1]) for com in commands_list]
 
-HELP_MESSAGE = '''
-Use /new_post command to create post.
+HELP_MESSAGE = '''Use /new_post command to create post.
 Follow the steps to fill the information.
-All fields are mandatory.
-Please fill the information carefully.
 '''
 
 ADMIN_ID_LIST = (22177377, 291338438)
@@ -161,6 +160,17 @@ def try_parse_query_data(data: str):
         return None
 
 
+class DjangoLocaleContextManager:
+    def __init__(self, lang: str):
+        self.lang = lang
+
+    def __enter__(self):
+        translation.activate(self.lang)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        translation.activate(DEFAULT_LOCALE)
+
+
 # This is a tricky middleware for processing the media group in one handler execution.
 class AlbumMiddleware(BaseMiddleware):
     """This middleware is for capturing media groups."""
@@ -188,6 +198,14 @@ class AlbumMiddleware(BaseMiddleware):
                 del self.album_data[event.media_group_id]
 
 
+class DjangoLocaleMiddleware(SimpleI18nMiddleware):
+    async def __call__(self, handler, event, data):
+        current_locale = await self.get_locale(event=event, data=data) or self.i18n.default_locale
+
+        with DjangoLocaleContextManager(current_locale):
+            return await handler(event, data)
+
+
 @dp.message(CommandStart())
 async def start_cmd_handler(message: types.Message, state: FSMContext):
     await state.clear()
@@ -205,7 +223,7 @@ async def cancel_handler(message: Message, state: FSMContext) -> None:
     if current_state is None:
         return
     await state.clear()
-    msg = f'{_("Cancelled")}: %s' % STATE_TEXT_MAP[current_state]
+    msg = f'{_("Cancelled")}: %s' % _(STATE_TEXT_MAP[current_state])
     await message.answer(msg, reply_markup=ReplyKeyboardRemove())
 
 
@@ -215,7 +233,7 @@ async def cancel_cb_handler(query: CallbackQuery, state: FSMContext):
     if current_state is None:
         return
     await state.clear()
-    msg = f'{_("Cancelled")}: %s' % STATE_TEXT_MAP[current_state]
+    msg = f'{_("Cancelled")}: %s' % _(STATE_TEXT_MAP[current_state])
     await query.answer(_('Canceled'))
     await bot.delete_message(query.from_user.id, query.message.message_id)
     await bot.send_message(query.from_user.id, msg, reply_markup=ReplyKeyboardRemove())
@@ -224,14 +242,14 @@ async def cancel_cb_handler(query: CallbackQuery, state: FSMContext):
 @dp.message(Command('help'))
 async def help_handler(message: Message, state: FSMContext):
     await state.clear()
-    await message.answer(HELP_MESSAGE, reply_markup=ReplyKeyboardRemove())
+    await message.answer(_(HELP_MESSAGE), reply_markup=ReplyKeyboardRemove())
 
 
 @dp.callback_query(F.data.casefold() == 'start:help')
 async def help_cb_handler(query: CallbackQuery, state: FSMContext):
     await state.clear()
     await query.answer(_('Help!'))
-    await bot.send_message(query.from_user.id, HELP_MESSAGE, reply_markup=ReplyKeyboardRemove())
+    await bot.send_message(query.from_user.id, _(HELP_MESSAGE), reply_markup=ReplyKeyboardRemove())
 
 
 @dp.message(Command('search'))
@@ -439,7 +457,7 @@ async def new_post_step_six(message: Message, state: FSMContext):
 async def new_post_step_seven(message: Message, state: FSMContext):
     await state.update_data(description=message.text)
     data = await state.get_data()
-    user, _ = await sync_to_async(UserModel.objects.get_or_create)(username=message.from_user.username)
+    user, created = await sync_to_async(UserModel.objects.get_or_create)(username=message.from_user.username)
     photos = data.pop('photo')
     location = data.pop('location', None)
     if location:
@@ -739,7 +757,7 @@ async def post_update_cb(query: CallbackQuery, state: FSMContext):
     await query.answer(_('Post update'))
     update_inline_builder = InlineKeyboardBuilder()
     for f in UPDATE_FIELDS_LIST:
-        update_inline_builder.button(text=f[1], callback_data=f'post_update:{f[0]}:post:{post_id}')
+        update_inline_builder.button(text=_(f[1]), callback_data=f'post_update:{f[0]}:post:{post_id}')
     update_inline_builder.adjust(2)
     update_inline_builder.row(InlineKeyboardButton(
         text=f'< {_("Back to post")}', callback_data=f'post:{post_id}'
@@ -1228,6 +1246,7 @@ async def main() -> None:
     await bot.set_my_commands(commands)
     dp.message.middleware(AlbumMiddleware(0.04))
     SimpleI18nMiddleware(i18n_ctx).setup(dp)
+    DjangoLocaleMiddleware(i18n_ctx).setup(dp)
     await dp.start_polling(bot)
 
 

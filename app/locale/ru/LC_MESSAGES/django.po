@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-06 22:14+0600\n"
+"POT-Creation-Date: 2024-06-07 21:21+0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,6 +19,7 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || "
 "(n%100>=11 && n%100<=14)? 2 : 3);\n"
+
 #: IPDD/jet_config.py:5
 msgid "Posts"
 msgstr "Посты"
@@ -87,7 +88,7 @@ msgstr ""
 msgid "Preview"
 msgstr "Предосмотр"
 
-#: apps/post/admin.py:48 bot/main.py:561 bot/main.py:697 bot/main.py:1153
+#: apps/post/admin.py:48 bot/main.py:565 bot/main.py:701 bot/main.py:1157
 msgid "Status"
 msgstr "Статус"
 
@@ -103,361 +104,275 @@ msgstr "Отклонен"
 msgid "Approved"
 msgstr "Подтвержден"
 
-#: bot/main.py:64
-msgid "Start"
-msgstr "Старт"
-
-#: bot/main.py:65
-msgid "Help"
-msgstr "Помощь"
-
-#: bot/main.py:66 bot/main.py:191
+#: bot/main.py:195
 msgid "Create new post"
 msgstr "Новый пост"
 
-#: bot/main.py:67
-msgid "My posts"
-msgstr "Мои посты"
-
-#: bot/main.py:68
-msgid "Search by license plate"
-msgstr "Искать по номеру машины"
-
-#: bot/main.py:69
-msgid "Cancel"
-msgstr "Отмена"
-
-#: bot/main.py:74
-msgid ""
-"\n"
-"Use /new_post command to create post.\n"
-"Follow the steps to fill the information.\n"
-"All fields are mandatory.\n"
-"Please fill the information carefully.\n"
-msgstr ""
-
-#: bot/main.py:88 bot/main.py:559 bot/main.py:695 bot/main.py:1151
-msgid "Category"
-msgstr "Категория"
-
-#: bot/main.py:89 templates/dashboard/modules/customer_points_earned.html:42
-#: templates/dashboard/modules/customer_points_used.html:42
-msgid "Photo"
-msgstr "Фото"
-
-#: bot/main.py:90 bot/main.py:564 bot/main.py:700 bot/main.py:1156
-msgid "License plate"
-msgstr "Номер машины"
-
-#: bot/main.py:91 bot/main.py:567 bot/main.py:703 bot/main.py:1159
-msgid "Location"
-msgstr "Местоположение"
-
-#: bot/main.py:92 bot/main.py:572 bot/main.py:708 bot/main.py:1164
-msgid "Address"
-msgstr "Адрес"
-
-#: bot/main.py:93 bot/main.py:573 bot/main.py:709 bot/main.py:1165
-msgid "Description"
-msgstr "Описание"
-
-#: bot/main.py:132
-msgid "New post violator"
-msgstr "Новый пост нарушитель"
-
-#: bot/main.py:133
-msgid "New post category"
-msgstr "Новый пост категория"
-
-#: bot/main.py:134
-msgid "New post step photo"
-msgstr "Новый пост фото"
-
-#: bot/main.py:135
-msgid "New post step location"
-msgstr "Новый пост местоположение"
-
-#: bot/main.py:136
-msgid "New post step address"
-msgstr "Новый пост адрес"
-
-#: bot/main.py:137
-msgid "New post step license plate"
-msgstr "Новый пост номер машины"
-
-#: bot/main.py:138
-msgid "New post step description"
-msgstr "Новый пост описание"
-
-#: bot/main.py:139 templates/admin/base.html:407
-msgid "Search"
-msgstr "Поиск"
-
-#: bot/main.py:140
-msgid "Update post location"
-msgstr "Обновить пост местоположение"
-
-#: bot/main.py:141
-msgid "Update post photo"
-msgstr "Обновить пост фото"
-
-#: bot/main.py:142
-msgid "Update post address"
-msgstr "Обновить пост адрес"
-
-#: bot/main.py:143
-msgid "Update post license plate"
-msgstr "Обновить пост номер машины"
-
-#: bot/main.py:144
-msgid "Update post description"
-msgstr "Обновить пост описание"
-
-#: bot/main.py:145
-msgid "Post list"
-msgstr "Список постов"
-
-#: bot/main.py:192 bot/main.py:229
+#: bot/main.py:196 bot/main.py:233
 msgid "Help!"
 msgstr "Помощь!"
 
-#: bot/main.py:194
+#: bot/main.py:198
 msgid "Welcome to IPDD!"
 msgstr "Добро пожаловать в IPDD!"
 
-#: bot/main.py:215
+#: bot/main.py:219
 msgid "Canceled"
 msgstr "Отменено"
 
-#: bot/main.py:237
+#: bot/main.py:241 bot/main.py:385 bot/main.py:405 bot/main.py:426
+#: bot/main.py:979
 msgid "Please send the license plate"
 msgstr "Пожалуйста отправьте номер машины"
 
-#: bot/main.py:249
+#: bot/main.py:253
 msgid "Please choose the violator"
 msgstr "Пожалуйста выберите нарушителя"
 
-#: bot/main.py:256
+#: bot/main.py:260
 msgid "New post"
 msgstr "Новый пост"
 
-#: bot/main.py:265
+#: bot/main.py:269
 msgid "Violator selected"
 msgstr "Нарушитель выбран"
 
-#: bot/main.py:272
+#: bot/main.py:276
 msgid "Please select category"
 msgstr "Пожалуйста выберите категорию"
 
-#: bot/main.py:283
+#: bot/main.py:287
 msgid "category selected"
 msgstr "Категория выбрана"
 
-#: bot/main.py:286 bot/main.py:294
+#: bot/main.py:290 bot/main.py:298
 msgid "Please send photos, max 3 allowed"
 msgstr "Пожалуйста отправьте фото, максимум 3"
 
-#: bot/main.py:298
+#: bot/main.py:302
 msgid "Yes"
 msgstr "Да"
 
-#: bot/main.py:299
+#: bot/main.py:303
 msgid "No"
 msgstr "Нет"
 
-#: bot/main.py:308 bot/main.py:328 bot/main.py:340 bot/main.py:345
-#: bot/main.py:363 bot/main.py:378 bot/main.py:387 bot/main.py:397
-#: bot/main.py:420
+#: bot/main.py:312 bot/main.py:332 bot/main.py:344 bot/main.py:349
+#: bot/main.py:367 bot/main.py:382 bot/main.py:391 bot/main.py:401
+#: bot/main.py:424
 msgid "Skip this step"
 msgstr "Пропустить этот шаг"
 
-#: bot/main.py:310 bot/main.py:330 bot/main.py:341 bot/main.py:365
-#: bot/main.py:916 bot/main.py:929
+#: bot/main.py:314 bot/main.py:334 bot/main.py:345 bot/main.py:369
+#: bot/main.py:920 bot/main.py:933
 msgid "Please send the location"
 msgstr "Пожалуйста отправьте местоположение"
 
-#: bot/main.py:314
+#: bot/main.py:318
 msgid "Finish photo upload?"
 msgstr "Завершить загрузку фото"
 
-#: bot/main.py:325
+#: bot/main.py:329
 msgid "Photo uploaded"
 msgstr "Фото загружено"
 
-#: bot/main.py:333
+#: bot/main.py:337
 msgid "Please send more photo"
 msgstr "Пожалуйста отправьте больше фото"
 
-#: bot/main.py:346 bot/main.py:358 bot/main.py:389
+#: bot/main.py:350 bot/main.py:362 bot/main.py:393 bot/main.py:951
 msgid "Please send the address"
 msgstr "Пожалуйста отправьте адрес"
 
-#: bot/main.py:355
+#: bot/main.py:359
 msgid "Location skipped"
 msgstr "Местоположение пропущено"
 
-#: bot/main.py:376
+#: bot/main.py:380
 msgid "Address skipped"
 msgstr "Адрес пропущен"
 
-#: bot/main.py:412
+#: bot/main.py:416
 msgid "License plate skipped"
 msgstr "Номер машины пропущен"
 
-#: bot/main.py:415
+#: bot/main.py:419 bot/main.py:435 bot/main.py:1008
 msgid "Please send the description"
 msgstr "Пожалуйста отправьте описание"
 
-#: bot/main.py:451
+#: bot/main.py:455
 msgid ""
 "Thanks for your message, the request will be reviewed and we will return to "
 "you!"
-msgstr "Спасибо за ваше сообщение, ваш запрос будет обработан и мы сообщим вам результат!"
+msgstr ""
+"Спасибо за ваше сообщение, ваш запрос будет обработан и мы сообщим вам "
+"результат!"
 
-#: bot/main.py:466
+#: bot/main.py:470
 msgid "Your have no posts yet"
 msgstr "У вас пока нет постов"
 
-#: bot/main.py:477 bot/main.py:514
+#: bot/main.py:481 bot/main.py:518
 msgid "Your posts"
 msgstr "Ваши посты"
 
-#: bot/main.py:528 bot/main.py:674
+#: bot/main.py:532 bot/main.py:678
 msgid "Post details"
 msgstr "Детали поста"
 
-#: bot/main.py:543
+#: bot/main.py:547
 msgid "Update post"
 msgstr "Обновить пост"
 
-#: bot/main.py:547
+#: bot/main.py:551
 msgid "Delete post"
 msgstr "Удалить пост"
 
-#: bot/main.py:560 bot/main.py:696 bot/main.py:1152
+#: bot/main.py:563 bot/main.py:699 bot/main.py:1155
+msgid "Category"
+msgstr "Категория"
+
+#: bot/main.py:564 bot/main.py:700 bot/main.py:1156
 msgid "Creation date"
 msgstr "Дата создания"
 
-#: bot/main.py:620 bot/main.py:659
+#: bot/main.py:568 bot/main.py:704 bot/main.py:1160
+msgid "License plate"
+msgstr "Номер машины"
+
+#: bot/main.py:571 bot/main.py:707 bot/main.py:1163
+msgid "Location"
+msgstr "Местоположение"
+
+#: bot/main.py:576 bot/main.py:712 bot/main.py:1168
+msgid "Address"
+msgstr "Адрес"
+
+#: bot/main.py:577 bot/main.py:713 bot/main.py:1169
+msgid "Description"
+msgstr "Описание"
+
+#: bot/main.py:624 bot/main.py:663
 msgid "Found posts"
 msgstr "Найденные посты"
 
-#: bot/main.py:623
+#: bot/main.py:627
 msgid "No matches found"
 msgstr "Совпадений не найдено"
 
-#: bot/main.py:735
+#: bot/main.py:739
 msgid "Post update"
 msgstr "Обновить пост"
 
-#: bot/main.py:743
+#: bot/main.py:747
 msgid "Please select what you would like to update"
 msgstr "Пожалуйста выберите что вы хотите обновить"
 
-#: bot/main.py:758
+#: bot/main.py:762
 msgid "Select category"
 msgstr "Выбор категории"
 
-#: bot/main.py:794
+#: bot/main.py:798
 msgid "Category updated"
 msgstr "Категория обновлена"
 
-#: bot/main.py:808
+#: bot/main.py:812
 msgid "Update photo"
 msgstr "Обновить фото"
 
-#: bot/main.py:818
+#: bot/main.py:822
 msgid "Delete"
 msgstr "Удалить"
 
-#: bot/main.py:823 bot/main.py:875
+#: bot/main.py:827 bot/main.py:879
 msgid "Add photo"
 msgstr "Добавить фото"
 
-#: bot/main.py:846
+#: bot/main.py:850
 msgid "No photo found"
 msgstr "Фото не найдено"
 
-#: bot/main.py:859
+#: bot/main.py:863
 msgid "Photo delete"
 msgstr "Удалить фото"
 
-#: bot/main.py:865
+#: bot/main.py:869
 msgid "Photo deleted"
 msgstr "Фото удалено"
 
-#: bot/main.py:874 bot/main.py:886
+#: bot/main.py:878 bot/main.py:890
 msgid ""
 "Please send photos, max 3 allowed, if exceeded, will substitute existing "
 "photo"
-msgstr "Пожалуйста отправьте фото, максимум 3, если превысит, будут заменены "
+msgstr ""
+"Пожалуйста отправьте фото, максимум 3, если превысит, будут заменены "
 "предыдущие фото"
 
-#: bot/main.py:910
+#: bot/main.py:914
 msgid "Photo updated"
 msgstr "Фото обновлено"
 
-#: bot/main.py:919
+#: bot/main.py:923
 msgid "Update location"
 msgstr "Обновить местоположение"
 
-#: bot/main.py:941
+#: bot/main.py:945
 msgid "Location updated"
 msgstr "Местоположение обновлено"
 
-#: bot/main.py:950
+#: bot/main.py:954
 msgid "Update address"
 msgstr "Обновить адрес"
 
-#: bot/main.py:969
+#: bot/main.py:973
 msgid "Address updated"
 msgstr "Адрес обновлен"
 
-#: bot/main.py:978
+#: bot/main.py:982
 msgid "Update license plate"
 msgstr "Обновить номер машины"
 
-#: bot/main.py:997
+#: bot/main.py:1001
 msgid "License plate updated"
 msgstr "Номер машины обновлен"
 
-#: bot/main.py:1007
+#: bot/main.py:1011
 msgid "Update description"
 msgstr "Обновить описание"
 
-#: bot/main.py:1026
+#: bot/main.py:1030
 msgid "Description updated"
 msgstr "Описание обновлено"
 
-#: bot/main.py:1035
+#: bot/main.py:1039 bot/main.py:1048
 msgid "Post deleted"
 msgstr "Пост удален"
 
-#: bot/main.py:1055 bot/main.py:1064
+#: bot/main.py:1059 bot/main.py:1068
 msgid "Post approved"
 msgstr "Пост подтвержден"
 
-#: bot/main.py:1075 bot/main.py:1084
+#: bot/main.py:1079 bot/main.py:1088
 msgid "Post rejected"
 msgstr "Пост отклонен"
 
-#: bot/main.py:1106 bot/main.py:1218
+#: bot/main.py:1110 bot/main.py:1222
 msgid "Pending posts"
 msgstr "Посты в ожидании"
 
-#: bot/main.py:1118
+#: bot/main.py:1122
 msgid "Post review"
 msgstr "Рассмотрение поста"
 
-#: bot/main.py:1134
+#: bot/main.py:1138
 msgid "Approve"
 msgstr "подтвердить"
 
-#: bot/main.py:1138
+#: bot/main.py:1142
 msgid "Reject"
 msgstr "отклонить"
 
-#: bot/main.py:1150
+#: bot/main.py:1154
 msgid "User"
 msgstr "Пользователь"
 
@@ -541,6 +456,10 @@ msgstr ""
 msgid "Remove"
 msgstr ""
 
+#: templates/admin/base.html:407
+msgid "Search"
+msgstr "Поиск"
+
 #: templates/admin/base.html:414
 msgid "Application page"
 msgstr ""
@@ -592,6 +511,11 @@ msgstr ""
 msgid "Top points earned users"
 msgstr ""
 
+#: templates/dashboard/modules/customer_points_earned.html:42
+#: templates/dashboard/modules/customer_points_used.html:42
+msgid "Photo"
+msgstr "Фото"
+
 #: templates/dashboard/modules/customer_points_earned.html:47
 #: templates/dashboard/modules/customer_points_used.html:47
 msgid "Count"
@@ -633,3 +557,66 @@ msgstr "Выручка"
 #: templates/dashboard/modules/post_total.html:4
 msgid "Total posts"
 msgstr "Всего постов"
+
+msgid "Start"
+msgstr "Старт"
+
+msgid "Help"
+msgstr "Помощь"
+
+msgid "My posts"
+msgstr "Мои посты"
+
+msgid "Search by license plate"
+msgstr "Искать по номеру машины"
+
+msgid "Cancel"
+msgstr "Отмена"
+
+msgid "New post violator"
+msgstr "Новый пост нарушитель"
+
+msgid "New post category"
+msgstr "Новый пост категория"
+
+msgid "New post step photo"
+msgstr "Новый пост фото"
+
+msgid "New post step location"
+msgstr "Новый пост местоположение"
+
+msgid "New post step address"
+msgstr "Новый пост адрес"
+
+msgid "New post step license plate"
+msgstr "Новый пост номер машины"
+
+msgid "New post step description"
+msgstr "Новый пост описание"
+
+msgid "Update post location"
+msgstr "Обновить пост местоположение"
+
+msgid "Update post photo"
+msgstr "Обновить пост фото"
+
+msgid "Update post address"
+msgstr "Обновить пост адрес"
+
+msgid "Update post license plate"
+msgstr "Обновить пост номер машины"
+
+msgid "Update post description"
+msgstr "Обновить пост описание"
+
+msgid "Post list"
+msgstr "Список постов"
+
+msgid "Cancelled"
+msgstr "Отменено"
+
+msgid ""
+"Use /new_post command to create post.\n"
+"Follow the steps to fill the information.\n"
+msgstr "Используйте команду /new_post чтобы создать пост.\n"
+"Отправьте необходимую информацию.\n"
