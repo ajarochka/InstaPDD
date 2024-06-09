@@ -81,18 +81,18 @@
                     {% if user.is_active and user.is_staff or has_permission %}
                         <div id="user-tools">
                             <a style="text-decoration: none">
-                                {# {% for language in LANGUAGES_INFO %}#}
-                                {#     <form action="{% url 'set_language' %}" method="post"#}
-                                {#           style="display: inline-block">{% csrf_token %}#}
-                                {#         <input name="next" type="hidden" value="{{ redirect_to }}">#}
-                                {#         <input type="hidden" name="language" value="{{ language.code }}">#}
-                                {#         <button type="submit"#}
-                                {#                 style="width: 2rem; height: 1.25rem;#}
-                                {#                         background: url('/static/img/{{ language.code }}.png');#}
-                                {#                         background-size: cover; background-position: center;">#}
-                                {#         </button>#}
-                                {#     </form>#}
-                                {# {% endfor %}#}
+                                {% for language in LANGUAGES_INFO %}
+                                    <form action="{% url 'set_language' %}" method="post"
+                                          style="display: inline-block">{% csrf_token %}
+                                        <input name="next" type="hidden" value="{{ redirect_to }}">
+                                        <input type="hidden" name="language" value="{{ language.code }}">
+                                        <button type="submit"
+                                                style="width: 2rem; height: 1.25rem;
+                                                        background: url('/static/img/{{ language.code }}.png');
+                                                        background-size: cover; background-position: center;">
+                                        </button>
+                                    </form>
+                                {% endfor %}
                             </a>
                             {% block welcome-msg %}
                                 {% trans 'Welcome,' %}

@@ -44,6 +44,8 @@ urlpatterns = [
     # Django-jet endpoints.
     path(r'jet/', include('jet.urls', 'jet')),  # Django JET URLS
     path('jet/dashboard/', include('jet.dashboard.urls', 'jet-dashboard')),
+    # i18n urls
+    path('i18n/', include('django.conf.urls.i18n')),
     # Apps endpoints.
     path('admin/', admin.site.urls),
     path('api/', include(api_urls)),
