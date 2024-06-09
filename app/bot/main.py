@@ -44,6 +44,7 @@ import asyncio
 from aiogram.types import (
     InlineKeyboardButton,
     ReplyKeyboardRemove,
+    InputMediaPhoto,
     TelegramObject,
     CallbackQuery,
     FSInputFile,
@@ -56,6 +57,8 @@ asyncio.set_event_loop(loop)
 
 BOT_TOKEN = '6914435384:AAEcg8rXUMelyzEsglTidsakLvl_fC-uHNc'
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+
+CHANNEL_NAME = '@citizen_kg'
 
 dp = Dispatcher(storage=MemoryStorage())
 
@@ -590,8 +593,9 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
             f'  {_("Longitude")}: ', post.location.x, '\n',
             f'  {_("Latitude")}; ', post.location.y, '\n'
         )
+    if post.address:
+        txt += Text(Bold(_('Address')), ': ', post.address, '\n')
     txt += Text(
-        Bold(_('Address')), ': ', post.address, '\n',
         Bold(_('Description')), ': ', post.description
     )
     await bot.delete_message(query.from_user.id, query.message.message_id)
@@ -726,8 +730,9 @@ async def search_license_plate_post_info_cb(query: CallbackQuery, state: FSMCont
             f'  {_("Longitude")}: ', post.location.x, '\n',
             f'  {_("Latitude")}; ', post.location.y, '\n'
         )
+    if post.address:
+        txt += Text(Bold(_('Address')), ': ', post.address, '\n')
     txt += Text(
-        Bold(_('Address')), ': ', post.address, '\n',
         Bold(_('Description')), ': ', post.description
     )
     await bot.delete_message(query.from_user.id, query.message.message_id)
@@ -1016,8 +1021,10 @@ async def post_update_license_plate_complete(message: Message, state: FSMContext
     post_inline_builder.row(InlineKeyboardButton(
         text=f'< {_("Back to post")}', callback_data=f'post:{post_id}:page:{page}')
     )
-    await bot.send_message(message.from_user.id, _('License plate updated'),
-                           reply_markup=post_inline_builder.as_markup())
+    await bot.send_message(
+        message.from_user.id, _('License plate updated'),
+        reply_markup=post_inline_builder.as_markup()
+    )
 
 
 @dp.callback_query(F.data.casefold().startswith(f'post_update:description'))
@@ -1086,6 +1093,30 @@ async def post_delete_cb(query: CallbackQuery, state: FSMContext):
         query.from_user.id, _('Post approved'),
         reply_markup=post_inline_builder.as_markup()
     )
+    # Send post to channel.
+    post = await sync_to_async(Post.objects.get)(id=post_id)
+    images = await sync_to_async(PostImage.objects.filter)(post_id=post_id)
+    ctg = await sync_to_async(Category.objects.get)(id=post.category_id)
+    txt = Text(
+        Bold(_('Category')), ': ', ctg.name, '\n',
+        Bold(_('Creation date')), ': ', post.created_at.strftime("%d-%m-%Y %H:%M"), '\n',
+    )
+    if post.license_plate:
+        txt += Text(Bold(_('License plate')), ': ', post.license_plate, '\n')
+    if post.address:
+        txt += Text(Bold(_('Address')), ': ', post.address, '\n')
+    txt += Text(
+        Bold(_('Description')), ': ', post.description
+    )
+    media = []
+    async for obj in images:
+        m = InputMediaPhoto(media=obj.file_id if obj.file_id else open(obj.file.path, 'rb'))
+        media.append(m)
+    if media:
+        media[0].caption=txt.as_html()
+        return await bot.send_media_group(CHANNEL_NAME, media)
+    # Should never be called
+    await bot.send_message(CHANNEL_NAME, txt.as_html())
 
 
 @dp.callback_query(F.data.casefold().startswith(f'post_action:{PostAction.REJECT}'), PostPageForm.page)
@@ -1182,8 +1213,9 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
             f'  {_("Longitude")}: ', post.location.x, '\n',
             f'  {_("Latitude")}; ', post.location.y, '\n'
         )
+    if post.address:
+        txt += Text(Bold(_('Address')), ': ', post.address, '\n')
     txt += Text(
-        Bold(_('Address')), ': ', post.address, '\n',
         Bold(_('Description')), ': ', post.description
     )
     await bot.delete_message(query.from_user.id, query.message.message_id)
