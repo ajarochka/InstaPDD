@@ -1094,29 +1094,7 @@ async def post_delete_cb(query: CallbackQuery, state: FSMContext):
         reply_markup=post_inline_builder.as_markup()
     )
     # Send post to channel.
-    post = await sync_to_async(Post.objects.get)(id=post_id)
-    images = await sync_to_async(PostImage.objects.filter)(post_id=post_id)
-    ctg = await sync_to_async(Category.objects.get)(id=post.category_id)
-    txt = Text(
-        Bold(_('Category')), ': ', ctg.name, '\n',
-        Bold(_('Creation date')), ': ', post.created_at.strftime("%d-%m-%Y %H:%M"), '\n',
-    )
-    if post.license_plate:
-        txt += Text(Bold(_('License plate')), ': ', post.license_plate, '\n')
-    if post.address:
-        txt += Text(Bold(_('Address')), ': ', post.address, '\n')
-    txt += Text(
-        Bold(_('Description')), ': ', post.description
-    )
-    media = []
-    async for obj in images:
-        m = InputMediaPhoto(media=obj.file_id if obj.file_id else open(obj.file.path, 'rb'))
-        media.append(m)
-    if media:
-        media[0].caption=txt.as_html()
-        return await bot.send_media_group(CHANNEL_NAME, media)
-    # Should never be called
-    await bot.send_message(CHANNEL_NAME, txt.as_html())
+    await _bot_send_post(CHANNEL_NAME, post_id)
 
 
 @dp.callback_query(F.data.casefold().startswith(f'post_action:{PostAction.REJECT}'), PostPageForm.page)
@@ -1272,6 +1250,41 @@ async def posts_page_cb(query: CallbackQuery, state: FSMContext):
         query.from_user.id, _('Pending posts'),
         reply_markup=post_inline_builder.as_markup()
     )
+
+
+async def _bot_send_post(chat_id, post_id):
+    post = await sync_to_async(Post.objects.get)(id=post_id)
+    images = await sync_to_async(PostImage.objects.filter)(post_id=post_id)
+    ctg = await sync_to_async(Category.objects.get)(id=post.category_id)
+    txt = Text(
+        Bold(_('Category')), ': ', ctg.name, '\n',
+        Bold(_('Creation date')), ': ', post.created_at.strftime("%d-%m-%Y %H:%M"), '\n',
+    )
+    if post.license_plate:
+        txt += Text(Bold(_('License plate')), ': ', post.license_plate, '\n')
+    if post.address:
+        txt += Text(Bold(_('Address')), ': ', post.address, '\n')
+    txt += Text(
+        Bold(_('Description')), ': ', post.description
+    )
+    media = []
+    async for obj in images:
+        m = InputMediaPhoto(media=obj.file_id if obj.file_id else open(obj.file.path, 'rb'))
+        media.append(m)
+    if media:
+        media[0].caption = txt.as_html()
+        return await bot.send_media_group(chat_id, media)
+    # Should never be called
+    return await bot.send_message(chat_id, txt.as_html())
+
+
+def bot_send_post(chat_id, post_id):
+    return loop.run_until_complete(_bot_send_post(chat_id, post_id))
+
+
+def bot_delete_message(chat_id, message_id):
+    """Message can be deleted only if it was sent less than 48 hours ago."""
+    return loop.run_until_complete(bot.delete_message(chat_id, message_id))
 
 
 async def main() -> None:

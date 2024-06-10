@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-07 03:09+0600\n"
+"POT-Creation-Date: 2024-06-10 23:30+0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,6 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
 #: IPDD/jet_config.py:5
 msgid "Posts"
 msgstr ""
@@ -57,7 +58,7 @@ msgstr ""
 msgid "Kyrgyz"
 msgstr ""
 
-#: IPDD/settings.py:195
+#: IPDD/settings.py:196
 msgid "API authentication token lifetime."
 msgstr ""
 
@@ -81,11 +82,30 @@ msgstr ""
 msgid "Hourly"
 msgstr ""
 
-#: apps/post/admin.py:30
+#: apps/authentication/models.py:8
+msgid "Expiration date"
+msgstr ""
+
+#: apps/authentication/models.py:12
+msgid "Phone"
+msgstr ""
+
+#: apps/category/models.py:6 apps/category/models.py:13
+#: templates/dashboard/modules/customer_points_earned.html:51
+#: templates/dashboard/modules/customer_points_used.html:51
+msgid "Name"
+msgstr ""
+
+#: apps/category/models.py:14
+msgid "Violator"
+msgstr ""
+
+#: apps/post/admin.py:32
 msgid "Preview"
 msgstr ""
 
-#: apps/post/admin.py:48 bot/main.py:565 bot/main.py:701 bot/main.py:1157
+#: apps/post/admin.py:50 apps/post/models.py:14 bot/main.py:586 bot/main.py:723
+#: bot/main.py:1184
 msgid "Status"
 msgstr ""
 
@@ -101,272 +121,308 @@ msgstr ""
 msgid "Approved"
 msgstr ""
 
-#: bot/main.py:195
+#: apps/post/models.py:12 apps/post/models.py:42 bot/main.py:1181
+msgid "User"
+msgstr ""
+
+#: apps/post/models.py:13 bot/main.py:584 bot/main.py:721 bot/main.py:1182
+#: bot/main.py:1260
+msgid "Category"
+msgstr ""
+
+#: apps/post/models.py:15 bot/main.py:597 bot/main.py:734 bot/main.py:1195
+#: bot/main.py:1266
+msgid "Address"
+msgstr ""
+
+#: apps/post/models.py:16 bot/main.py:589 bot/main.py:726 bot/main.py:1187
+#: bot/main.py:1264
+msgid "License plate"
+msgstr ""
+
+#: apps/post/models.py:17 bot/main.py:599 bot/main.py:736 bot/main.py:1197
+#: bot/main.py:1268
+msgid "Description"
+msgstr ""
+
+#: apps/post/models.py:18 bot/main.py:592 bot/main.py:729 bot/main.py:1190
+msgid "Location"
+msgstr ""
+
+#: apps/post/models.py:19
+msgid "Location image"
+msgstr ""
+
+#: apps/post/models.py:20
+msgid "Active"
+msgstr ""
+
+#: apps/post/models.py:21
+msgid "Telegram bot message id"
+msgstr ""
+
+#: apps/post/models.py:22 apps/post/models.py:35 apps/post/models.py:45
+msgid "Created at"
+msgstr ""
+
+#: apps/post/models.py:32 apps/post/models.py:43
+msgid "Post"
+msgstr ""
+
+#: apps/post/models.py:33
+msgid "File"
+msgstr ""
+
+#: apps/post/models.py:34
+msgid "Telegram bot file id"
+msgstr ""
+
+#: apps/post/models.py:44
+msgid "Text"
+msgstr ""
+
+#: bot/main.py:216
 msgid "Create new post"
 msgstr ""
 
-#: bot/main.py:196 bot/main.py:233
+#: bot/main.py:217 bot/main.py:254
 msgid "Help!"
 msgstr ""
 
-#: bot/main.py:198
+#: bot/main.py:219
 msgid "Welcome to IPDD!"
 msgstr ""
 
-#: bot/main.py:219
+#: bot/main.py:240
 msgid "Canceled"
 msgstr ""
 
-#: bot/main.py:241 bot/main.py:385 bot/main.py:405 bot/main.py:426
-#: bot/main.py:979
+#: bot/main.py:262 bot/main.py:406 bot/main.py:426 bot/main.py:447
+#: bot/main.py:1002
 msgid "Please send the license plate"
 msgstr ""
 
-#: bot/main.py:253
+#: bot/main.py:274
 msgid "Please choose the violator"
 msgstr ""
 
-#: bot/main.py:260
+#: bot/main.py:281
 msgid "New post"
 msgstr ""
 
-#: bot/main.py:269
+#: bot/main.py:290
 msgid "Violator selected"
 msgstr ""
 
-#: bot/main.py:276
+#: bot/main.py:297
 msgid "Please select category"
 msgstr ""
 
-#: bot/main.py:287
+#: bot/main.py:308
 msgid "category selected"
 msgstr ""
 
-#: bot/main.py:290 bot/main.py:298
+#: bot/main.py:311 bot/main.py:319
 msgid "Please send photos, max 3 allowed"
 msgstr ""
 
-#: bot/main.py:302
+#: bot/main.py:323
 msgid "Yes"
 msgstr ""
 
-#: bot/main.py:303
+#: bot/main.py:324
 msgid "No"
 msgstr ""
 
-#: bot/main.py:312 bot/main.py:332 bot/main.py:344 bot/main.py:349
-#: bot/main.py:367 bot/main.py:382 bot/main.py:391 bot/main.py:401
-#: bot/main.py:424
+#: bot/main.py:333 bot/main.py:353 bot/main.py:365 bot/main.py:370
+#: bot/main.py:388 bot/main.py:403 bot/main.py:412 bot/main.py:422
+#: bot/main.py:445
 msgid "Skip this step"
 msgstr ""
 
-#: bot/main.py:314 bot/main.py:334 bot/main.py:345 bot/main.py:369
-#: bot/main.py:920 bot/main.py:933
+#: bot/main.py:335 bot/main.py:355 bot/main.py:366 bot/main.py:390
+#: bot/main.py:943 bot/main.py:956
 msgid "Please send the location"
 msgstr ""
 
-#: bot/main.py:318
+#: bot/main.py:339
 msgid "Finish photo upload?"
 msgstr ""
 
-#: bot/main.py:329
+#: bot/main.py:350
 msgid "Photo uploaded"
 msgstr ""
 
-#: bot/main.py:337
+#: bot/main.py:358
 msgid "Please send more photo"
 msgstr ""
 
-#: bot/main.py:350 bot/main.py:362 bot/main.py:393 bot/main.py:951
+#: bot/main.py:371 bot/main.py:383 bot/main.py:414 bot/main.py:974
 msgid "Please send the address"
 msgstr ""
 
-#: bot/main.py:359
+#: bot/main.py:380
 msgid "Location skipped"
 msgstr ""
 
-#: bot/main.py:380
+#: bot/main.py:401
 msgid "Address skipped"
 msgstr ""
 
-#: bot/main.py:416
+#: bot/main.py:437
 msgid "License plate skipped"
 msgstr ""
 
-#: bot/main.py:419 bot/main.py:435 bot/main.py:1008
+#: bot/main.py:440 bot/main.py:456 bot/main.py:1033
 msgid "Please send the description"
 msgstr ""
 
-#: bot/main.py:455
+#: bot/main.py:476
 msgid ""
 "Thanks for your message, the request will be reviewed and we will return to "
 "you!"
 msgstr ""
 
-#: bot/main.py:470
+#: bot/main.py:491
 msgid "Your have no posts yet"
 msgstr ""
 
-#: bot/main.py:481 bot/main.py:518
+#: bot/main.py:502 bot/main.py:539
 msgid "Your posts"
 msgstr ""
 
-#: bot/main.py:532 bot/main.py:678
+#: bot/main.py:553 bot/main.py:700
 msgid "Post details"
 msgstr ""
 
-#: bot/main.py:547
+#: bot/main.py:568
 msgid "Update post"
 msgstr ""
 
-#: bot/main.py:551
+#: bot/main.py:572
 msgid "Delete post"
 msgstr ""
 
-#: bot/main.py:563 bot/main.py:699 bot/main.py:1155
-msgid "Category"
-msgstr ""
-
-#: bot/main.py:564 bot/main.py:700 bot/main.py:1156
+#: bot/main.py:585 bot/main.py:722 bot/main.py:1183 bot/main.py:1261
 msgid "Creation date"
 msgstr ""
 
-#: bot/main.py:568 bot/main.py:704 bot/main.py:1160
-msgid "License plate"
-msgstr ""
-
-#: bot/main.py:571 bot/main.py:707 bot/main.py:1163
-msgid "Location"
-msgstr ""
-
-#: bot/main.py:576 bot/main.py:712 bot/main.py:1168
-msgid "Address"
-msgstr ""
-
-#: bot/main.py:577 bot/main.py:713 bot/main.py:1169
-msgid "Description"
-msgstr ""
-
-#: bot/main.py:624 bot/main.py:663
+#: bot/main.py:646 bot/main.py:685
 msgid "Found posts"
 msgstr ""
 
-#: bot/main.py:627
+#: bot/main.py:649
 msgid "No matches found"
 msgstr ""
 
-#: bot/main.py:739
+#: bot/main.py:762
 msgid "Post update"
 msgstr ""
 
-#: bot/main.py:747
+#: bot/main.py:770
 msgid "Please select what you would like to update"
 msgstr ""
 
-#: bot/main.py:762
+#: bot/main.py:785
 msgid "Select category"
 msgstr ""
 
-#: bot/main.py:798
+#: bot/main.py:821
 msgid "Category updated"
 msgstr ""
 
-#: bot/main.py:812
+#: bot/main.py:835
 msgid "Update photo"
 msgstr ""
 
-#: bot/main.py:822
+#: bot/main.py:845
 msgid "Delete"
 msgstr ""
 
-#: bot/main.py:827 bot/main.py:879
+#: bot/main.py:850 bot/main.py:902
 msgid "Add photo"
 msgstr ""
 
-#: bot/main.py:850
+#: bot/main.py:873
 msgid "No photo found"
 msgstr ""
 
-#: bot/main.py:863
+#: bot/main.py:886
 msgid "Photo delete"
 msgstr ""
 
-#: bot/main.py:869
+#: bot/main.py:892
 msgid "Photo deleted"
 msgstr ""
 
-#: bot/main.py:878 bot/main.py:890
+#: bot/main.py:901 bot/main.py:913
 msgid ""
 "Please send photos, max 3 allowed, if exceeded, will substitute existing "
 "photo"
 msgstr ""
 
-#: bot/main.py:914
+#: bot/main.py:937
 msgid "Photo updated"
 msgstr ""
 
-#: bot/main.py:923
+#: bot/main.py:946
 msgid "Update location"
 msgstr ""
 
-#: bot/main.py:945
+#: bot/main.py:968
 msgid "Location updated"
 msgstr ""
 
-#: bot/main.py:954
+#: bot/main.py:977
 msgid "Update address"
 msgstr ""
 
-#: bot/main.py:973
+#: bot/main.py:996
 msgid "Address updated"
 msgstr ""
 
-#: bot/main.py:982
+#: bot/main.py:1005
 msgid "Update license plate"
 msgstr ""
 
-#: bot/main.py:1001
+#: bot/main.py:1025
 msgid "License plate updated"
 msgstr ""
 
-#: bot/main.py:1011
+#: bot/main.py:1036
 msgid "Update description"
 msgstr ""
 
-#: bot/main.py:1030
+#: bot/main.py:1055
 msgid "Description updated"
 msgstr ""
 
-#: bot/main.py:1039 bot/main.py:1048
+#: bot/main.py:1064 bot/main.py:1073
 msgid "Post deleted"
 msgstr ""
 
-#: bot/main.py:1059 bot/main.py:1068
+#: bot/main.py:1084 bot/main.py:1093
 msgid "Post approved"
 msgstr ""
 
-#: bot/main.py:1079 bot/main.py:1088
+#: bot/main.py:1106 bot/main.py:1115
 msgid "Post rejected"
 msgstr ""
 
-#: bot/main.py:1110 bot/main.py:1222
+#: bot/main.py:1137 bot/main.py:1250
 msgid "Pending posts"
 msgstr ""
 
-#: bot/main.py:1122
+#: bot/main.py:1149
 msgid "Post review"
 msgstr ""
 
-#: bot/main.py:1138
+#: bot/main.py:1165
 msgid "Approve"
 msgstr ""
 
-#: bot/main.py:1142
+#: bot/main.py:1169
 msgid "Reject"
-msgstr ""
-
-#: bot/main.py:1154
-msgid "User"
 msgstr ""
 
 #: dashboard/dashboard_modules.py:61
@@ -512,11 +568,6 @@ msgstr ""
 #: templates/dashboard/modules/customer_points_earned.html:47
 #: templates/dashboard/modules/customer_points_used.html:47
 msgid "Count"
-msgstr ""
-
-#: templates/dashboard/modules/customer_points_earned.html:51
-#: templates/dashboard/modules/customer_points_used.html:51
-msgid "Name"
 msgstr ""
 
 #: templates/dashboard/modules/customer_points_used.html:7

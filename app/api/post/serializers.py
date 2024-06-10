@@ -4,10 +4,10 @@ from apps.post.models import Post
 
 
 class PostSerializer(serializers.ModelSerializer):
-    category_name = serializers.SerializerMethodField(read_only=True)
-    # category_name = serializers.CharField(source='category.name', read_only=True)
+    category_name = serializers.CharField(source='category.name', read_only=True)
     username = serializers.CharField(source='user.username', read_only=True)
     status_name = serializers.SerializerMethodField(read_only=True)
+    location = serializers.SerializerMethodField(read_only=True)
     images = serializers.SerializerMethodField(read_only=True)
     comments_count = serializers.SerializerMethodField(read_only=True)
     created_at = serializers.SerializerMethodField(read_only=True)
@@ -16,13 +16,14 @@ class PostSerializer(serializers.ModelSerializer):
         model = Post
         exclude = ()
 
-    def get_category_name(self, obj):
-        request = self.context.get('request')
-        if obj.category:
-            return obj.category.name
-
     def get_status_name(self, obj):
         return obj.get_status_display()
+
+    def get_location(self, obj):
+        if not obj.location:
+            return None
+        lon, lat = obj.location.coords
+        return {'latitude': lat, 'longitude': lon}
 
     def get_images(self, obj):
         request = self.context.get('request')

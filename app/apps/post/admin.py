@@ -1,7 +1,9 @@
+# from bot.main import bot_delete_message, CHANNEL_NAME, bot_send_post
 from django.utils.translation import gettext_lazy as _
 from .models import Post, PostComment, PostImage
 from leaflet.admin import LeafletGeoAdmin
 from django.utils.html import format_html
+from collections.abc import Iterable
 from django.contrib import admin
 from .choices import PostStatus
 from django.db import models
@@ -51,6 +53,20 @@ class PostAdmin(LeafletGeoAdmin):
             f'<img src="/static/admin/img/{STATUS_ICON_MAP[obj.status]}" alt="True">'
             f'</span>&nbsp;&nbsp;{obj.get_status_display()}'
         )
+
+    # def save_form(self, request, form, change):
+    #     form.save(commit=False)
+    #     obj = form.instance
+    #     if obj.status != PostStatus.APPROVED and obj.bot_message_id:
+    #         for msg_id in obj.bot_message_id.split(','):
+    #             bot_delete_message(CHANNEL_NAME, msg_id)
+    #     if obj.status == PostStatus.APPROVED and not obj.bot_message_id:
+    #         messages = bot_send_post(CHANNEL_NAME, obj.id)
+    #         if not messages:
+    #             return
+    #         if not isinstance(messages, Iterable):
+    #             messages = [messages]
+    #         obj.bot_message_id = ','.join([m.message_id for m in messages])
 
 
 admin.site.register(Post, PostAdmin)
