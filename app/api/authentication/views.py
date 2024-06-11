@@ -28,6 +28,7 @@ class RegisterApi(generics.CreateAPIView):
         if not created:
             raise UsernameAlreadyUsed
         user.set_password(data['password1'])
+        user.save()
         token = CustomToken.objects.create(user=user)
         token.expires_at = timezone.now() + timedelta(seconds=config.TOKEN_TTL)
         token.save(update_fields=('expires_at',))
