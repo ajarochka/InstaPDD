@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from utils.common import normalize_phone
 from rest_framework import serializers
+from .exceptions import WrongPassword
 
 UserModel = get_user_model()
 
@@ -15,6 +16,8 @@ class RegisterCustomerSerializer(serializers.Serializer):
     def validate(self, attrs):
         if 'phone' in attrs:
             attrs['phone'] = normalize_phone(attrs['phone'])
+        if attrs['password1'] != attrs['password2']:
+            raise WrongPassword
         return attrs
 
 
