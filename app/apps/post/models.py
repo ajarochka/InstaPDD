@@ -41,7 +41,7 @@ class PostImage(models.Model):
 class PostComment(models.Model):
     user = models.ForeignKey(UserModel, on_delete=models.CASCADE, verbose_name=_('User'))
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments', verbose_name=_('Post'))
-    text = models.TextField(_('Text'))
+    text = models.TextField(_('Text'), max_length=500)
     created_at = models.DateTimeField(_('Created at'), auto_now_add=True)
 
     class Meta:

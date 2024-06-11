@@ -9,8 +9,8 @@ class RegisterCustomerSerializer(serializers.Serializer):
     username = serializers.CharField(required=True)
     password1 = serializers.CharField(required=True)
     password2 = serializers.CharField(required=True)
-    email = serializers.EmailField()
-    phone = serializers.CharField()
+    email = serializers.EmailField(required=False)
+    phone = serializers.CharField(required=False)
 
     def validate(self, attrs):
         if 'phone' in attrs:
