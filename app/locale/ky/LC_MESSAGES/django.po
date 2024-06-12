@@ -23,501 +23,501 @@ msgstr ""
 
 #: IPDD/jet_config.py:6
 msgid "Violators"
-msgstr ""
+msgstr "Жол эреже бузуучу"
 
 #: IPDD/jet_config.py:7
 msgid "Categories"
-msgstr ""
+msgstr "Категориялар"
 
 #: IPDD/jet_config.py:9
 msgid "Authentication"
-msgstr ""
+msgstr "Аутентификация"
 
 #: IPDD/jet_config.py:10
 msgid "Users"
-msgstr ""
+msgstr "Колдонуучулар"
 
 #: IPDD/jet_config.py:11
 msgid "Groups"
-msgstr ""
+msgstr "Топтор"
 
 #: IPDD/jet_config.py:12
 msgid "Permissions"
-msgstr ""
+msgstr "Уруксаттар"
 
 #: IPDD/settings.py:167
 msgid "English"
-msgstr ""
+msgstr "Англисче"
 
 #: IPDD/settings.py:168
 msgid "Russian"
-msgstr ""
+msgstr "Орусча"
 
 #: IPDD/settings.py:169
 msgid "Kyrgyz"
-msgstr ""
+msgstr "Кыргызча"
 
 #: IPDD/settings.py:195
 msgid "API authentication token lifetime."
-msgstr ""
+msgstr "API аныктыгын текшерүү токенинин иш мөөнөтү."
 
 #: api/authentication/exceptions.py:8
 msgid "User is not active"
-msgstr ""
+msgstr "Колдонуучу активдүү эмес"
 
 #: api/authentication/exceptions.py:14
 msgid "Wrong password"
-msgstr ""
+msgstr "Туура эмес сырсөз"
 
 #: api/authentication/exceptions.py:20
 msgid "Username already in use"
-msgstr ""
+msgstr "Колдонуучунун аты колдонулууда"
 
 #: api/statistics/choices.py:6
 msgid "Daily"
-msgstr ""
+msgstr "Күнүмдүк"
 
 #: api/statistics/choices.py:7
 msgid "Hourly"
-msgstr ""
+msgstr "Саат сайын"
 
 #: apps/post/admin.py:30
 msgid "Preview"
-msgstr ""
+msgstr "Алдын ала көрүү"
 
 #: apps/post/admin.py:48 bot/main.py:565 bot/main.py:701 bot/main.py:1157
 msgid "Status"
-msgstr ""
+msgstr "Статус"
 
 #: apps/post/choices.py:6
 msgid "Pending"
-msgstr ""
+msgstr "Күтүүдө"
 
 #: apps/post/choices.py:7
 msgid "Rejected"
-msgstr ""
+msgstr "Четке кагылды"
 
 #: apps/post/choices.py:8
 msgid "Approved"
-msgstr ""
+msgstr "Бекитилди"
 
 #: bot/main.py:195
 msgid "Create new post"
-msgstr ""
+msgstr "Жаңы пост түзүү"
 
 #: bot/main.py:196 bot/main.py:233
 msgid "Help!"
-msgstr ""
+msgstr "Жардам!"
 
 #: bot/main.py:198
 msgid "Welcome to IPDD!"
-msgstr ""
+msgstr "IPDDге кош келиңиз!"
 
 #: bot/main.py:219
 msgid "Canceled"
-msgstr ""
+msgstr "Жокко чыгарылды"
 
 #: bot/main.py:241 bot/main.py:385 bot/main.py:405 bot/main.py:426
 #: bot/main.py:979
 msgid "Please send the license plate"
-msgstr ""
+msgstr "Сураныч, унаа номерин жөнөтүңүз"
 
 #: bot/main.py:253
 msgid "Please choose the violator"
-msgstr ""
+msgstr "Сураныч, бузуучу категорияны тандаңыз"
 
 #: bot/main.py:260
 msgid "New post"
-msgstr ""
+msgstr "Жаңы пост"
 
 #: bot/main.py:269
 msgid "Violator selected"
-msgstr ""
+msgstr "Бузуучу тандалды"
 
 #: bot/main.py:276
 msgid "Please select category"
-msgstr ""
+msgstr "Сураныч, категория тандаңыз"
 
 #: bot/main.py:287
 msgid "category selected"
-msgstr ""
+msgstr "категория тандалды"
 
 #: bot/main.py:290 bot/main.py:298
 msgid "Please send photos, max 3 allowed"
-msgstr ""
+msgstr "Сураныч, сүрөттөрдү жөнөтүңүз, 3 өйдө эмес"
 
 #: bot/main.py:302
 msgid "Yes"
-msgstr ""
+msgstr "Ооба"
 
 #: bot/main.py:303
 msgid "No"
-msgstr ""
+msgstr "Жок"
 
 #: bot/main.py:312 bot/main.py:332 bot/main.py:344 bot/main.py:349
 #: bot/main.py:367 bot/main.py:382 bot/main.py:391 bot/main.py:401
 #: bot/main.py:424
 msgid "Skip this step"
-msgstr ""
+msgstr "Бул кадамды өтүп кетиңиз"
 
 #: bot/main.py:314 bot/main.py:334 bot/main.py:345 bot/main.py:369
 #: bot/main.py:920 bot/main.py:933
 msgid "Please send the location"
-msgstr ""
+msgstr "Сураныч жайгашкан жерин жөнөтүңүз"
 
 #: bot/main.py:318
 msgid "Finish photo upload?"
-msgstr ""
+msgstr "Сүрөт жүктөө аяктады бы?"
 
 #: bot/main.py:329
 msgid "Photo uploaded"
-msgstr ""
+msgstr "Сүрөт жүктөлдү"
 
 #: bot/main.py:337
 msgid "Please send more photo"
-msgstr ""
+msgstr "Сураныч көбүрөөк сүрөт жөнөтүңүз"
 
 #: bot/main.py:350 bot/main.py:362 bot/main.py:393 bot/main.py:951
 msgid "Please send the address"
-msgstr ""
+msgstr "Сураныч, дарегин жөнөтүнүз"
 
 #: bot/main.py:359
 msgid "Location skipped"
-msgstr ""
+msgstr "Жайгашкан жер өткөрүлүп жиберилди"
 
 #: bot/main.py:380
 msgid "Address skipped"
-msgstr ""
+msgstr "Дарек өткөрүлүп жиберилди"
 
 #: bot/main.py:416
 msgid "License plate skipped"
-msgstr ""
+msgstr "Унаанын номери өтүп кетти"
 
 #: bot/main.py:419 bot/main.py:435 bot/main.py:1008
 msgid "Please send the description"
-msgstr ""
+msgstr "Сураныч, сүрөттөмө жөнөтүңүз"
 
 #: bot/main.py:455
 msgid ""
 "Thanks for your message, the request will be reviewed and we will return to "
 "you!"
-msgstr ""
+msgstr "Кабарыңыз үчүн рахмат, өтүнүч каралат жана биз сизге кайрылабыз"
 
 #: bot/main.py:470
 msgid "Your have no posts yet"
-msgstr ""
+msgstr "Сиздин азырынча постуңуз жок"
 
 #: bot/main.py:481 bot/main.py:518
 msgid "Your posts"
-msgstr ""
+msgstr "Сиздин постторуңуз"
 
 #: bot/main.py:532 bot/main.py:678
 msgid "Post details"
-msgstr ""
+msgstr "Пост чоо-жайы"
 
 #: bot/main.py:547
 msgid "Update post"
-msgstr ""
+msgstr "Постту жаңыртуу"
 
 #: bot/main.py:551
 msgid "Delete post"
-msgstr ""
+msgstr "Постту жок кылуу"
 
 #: bot/main.py:563 bot/main.py:699 bot/main.py:1155
 msgid "Category"
-msgstr ""
+msgstr "Категория"
 
 #: bot/main.py:564 bot/main.py:700 bot/main.py:1156
 msgid "Creation date"
-msgstr ""
+msgstr "Түзүлгөн күнү"
 
 #: bot/main.py:568 bot/main.py:704 bot/main.py:1160
 msgid "License plate"
-msgstr ""
+msgstr "Унаа номери"
 
 #: bot/main.py:571 bot/main.py:707 bot/main.py:1163
 msgid "Location"
-msgstr ""
+msgstr "Жайгашкан жери"
 
 #: bot/main.py:576 bot/main.py:712 bot/main.py:1168
 msgid "Address"
-msgstr ""
+msgstr "Дареги"
 
 #: bot/main.py:577 bot/main.py:713 bot/main.py:1169
 msgid "Description"
-msgstr ""
+msgstr "Сүрөттөмө"
 
 #: bot/main.py:624 bot/main.py:663
 msgid "Found posts"
-msgstr ""
+msgstr "Табылган посттор"
 
 #: bot/main.py:627
 msgid "No matches found"
-msgstr ""
+msgstr "Эч кандай дал келүү табылган жок"
 
 #: bot/main.py:739
 msgid "Post update"
-msgstr ""
+msgstr "Жаңыртуу"
 
 #: bot/main.py:747
 msgid "Please select what you would like to update"
-msgstr ""
+msgstr "Сураныч жаңырткыңыз келген нерсени тандаңыз"
 
 #: bot/main.py:762
 msgid "Select category"
-msgstr ""
+msgstr "Категорияны танданыз"
 
 #: bot/main.py:798
 msgid "Category updated"
-msgstr ""
+msgstr "Категория жаңыланган"
 
 #: bot/main.py:812
 msgid "Update photo"
-msgstr ""
+msgstr "Сүрөттү жаңыртыңыз"
 
 #: bot/main.py:822
 msgid "Delete"
-msgstr ""
+msgstr "Жок кылуу"
 
 #: bot/main.py:827 bot/main.py:879
 msgid "Add photo"
-msgstr ""
+msgstr "Сүрөт кошуу"
 
 #: bot/main.py:850
 msgid "No photo found"
-msgstr ""
+msgstr "Сүрөт табылган жок"
 
 #: bot/main.py:863
 msgid "Photo delete"
-msgstr ""
+msgstr "Сүрөт өчүрүү"
 
 #: bot/main.py:869
 msgid "Photo deleted"
-msgstr ""
+msgstr "Сүрөт өчүрүлдү"
 
 #: bot/main.py:878 bot/main.py:890
 msgid ""
 "Please send photos, max 3 allowed, if exceeded, will substitute existing "
 "photo"
-msgstr ""
+msgstr ""Сураныч, сүрөттөрдү жөнөтүңүз, 3 сүрөттөн өйдө эмес уруксат берилген, эгер ашып кетсе, учурдагы сүрөттү алмаштырат"
 
 #: bot/main.py:914
 msgid "Photo updated"
-msgstr ""
+msgstr "Сүрөт жаңырды"
 
 #: bot/main.py:923
 msgid "Update location"
-msgstr ""
+msgstr "Жайгашкан жерди жаңыртуу"
 
 #: bot/main.py:945
 msgid "Location updated"
-msgstr ""
+msgstr "Жайгашкан жер жаңырды"
 
 #: bot/main.py:954
 msgid "Update address"
-msgstr ""
+msgstr "Даректи жаңыртуу"
 
 #: bot/main.py:973
 msgid "Address updated"
-msgstr ""
+msgstr "Дарек жаңырды"
 
 #: bot/main.py:982
 msgid "Update license plate"
-msgstr ""
+msgstr "Унаанын номерин жаңыртуу"
 
 #: bot/main.py:1001
 msgid "License plate updated"
-msgstr ""
+msgstr "Унаанын номери жаңырды"
 
 #: bot/main.py:1011
 msgid "Update description"
-msgstr ""
+msgstr "Сүрөттөмөсүн жаңыртуу"
 
 #: bot/main.py:1030
 msgid "Description updated"
-msgstr ""
+msgstr "Сүрөттөмө жаңыртылды"
 
 #: bot/main.py:1039 bot/main.py:1048
 msgid "Post deleted"
-msgstr ""
+msgstr "Пост жок кылынды"
 
 #: bot/main.py:1059 bot/main.py:1068
 msgid "Post approved"
-msgstr ""
+msgstr "Пост бекитилген"
 
 #: bot/main.py:1079 bot/main.py:1088
 msgid "Post rejected"
-msgstr ""
+msgstr "Пост четке кагылды"
 
 #: bot/main.py:1110 bot/main.py:1222
 msgid "Pending posts"
-msgstr ""
+msgstr "Күтүүдөгү посттор"
 
 #: bot/main.py:1122
 msgid "Post review"
-msgstr ""
+msgstr "Пост көрүп чыгуу"
 
 #: bot/main.py:1138
 msgid "Approve"
-msgstr ""
+msgstr "Кабыл алуу"
 
 #: bot/main.py:1142
 msgid "Reject"
-msgstr ""
+msgstr "Четке кагуу"
 
 #: bot/main.py:1154
 msgid "User"
-msgstr ""
+msgstr "Колдонуучу"
 
 #: dashboard/dashboard_modules.py:61
 msgid "Posts activity"
-msgstr ""
+msgstr "Посттордун активдүүлүгү"
 
 #: dashboard/forms.py:8
 msgid "From date"
-msgstr ""
+msgstr "Мөөнөттөн кийин"
 
 #: dashboard/forms.py:9
 msgid "To date"
-msgstr ""
+msgstr "Мөөнөткө чейин"
 
 #: templates/admin/base.html:98
 msgid "Welcome,"
-msgstr ""
+msgstr "Кош келдиңиз,"
 
 #: templates/admin/base.html:103 templates/admin/base.html:225
 msgid "View site"
-msgstr ""
+msgstr "Сайтты көрүү"
 
 #: templates/admin/base.html:108 templates/admin/base.html:234
 msgid "Documentation"
-msgstr ""
+msgstr "Документация"
 
 #: templates/admin/base.html:112
 msgid "Change password"
-msgstr ""
+msgstr "Сырсөздү өзгөртүү"
 
 #: templates/admin/base.html:114
 msgid "Log out"
-msgstr ""
+msgstr "Чыгуу"
 
 #: templates/admin/base.html:124 templates/admin/base.html:217
 msgid "Home"
-msgstr ""
+msgstr "Башкы бет"
 
 #: templates/admin/base.html:197
 msgid "back"
-msgstr ""
+msgstr "артка"
 
 #: templates/admin/base.html:284
 msgid "Applications"
-msgstr ""
+msgstr "Тиркемелер"
 
 #: templates/admin/base.html:313
 msgid "Hide applications"
-msgstr ""
+msgstr "Тиркемелерди жашыруу"
 
 #: templates/admin/base.html:314
 msgid "Show hidden"
-msgstr ""
+msgstr "Жашыруун көрсөтүү"
 
 #: templates/admin/base.html:345 templates/admin/base.html:365
 msgid "Add bookmark"
-msgstr ""
+msgstr "Кыстарма кошуу"
 
 #: templates/admin/base.html:348
 msgid "Title"
-msgstr ""
+msgstr "Аталышы"
 
 #: templates/admin/base.html:350
 msgid "URL"
-msgstr ""
+msgstr "URL"
 
 #: templates/admin/base.html:359
 msgid "Delete bookmark"
-msgstr ""
+msgstr "Кыстарманы жок кылуу"
 
 #: templates/admin/base.html:360
 msgid "Are you sure want to delete this bookmark?"
-msgstr ""
+msgstr "Бул кыстарманы жок кылгыңыз келеби?"
 
 #: templates/admin/base.html:369
 msgid "bookmarks"
-msgstr ""
+msgstr "кыстармалар"
 
 #: templates/admin/base.html:378 templates/admin/base.html:385
 msgid "Remove"
-msgstr ""
+msgstr "Алып салуу"
 
 #: templates/admin/base.html:407
 msgid "Search"
-msgstr ""
+msgstr "Издөө"
 
 #: templates/admin/base.html:414
 msgid "Application page"
-msgstr ""
+msgstr "Тиркеменин бети"
 
 #: templates/admin/base.html:442
 msgid "current theme"
-msgstr ""
+msgstr "учурдагы тема"
 
 #: templates/admin/post/post/change_form.html:18
 msgid "Image preview"
-msgstr ""
+msgstr "Сүрөттү алдын ала көрүү"
 
 #: templates/dashboard/custom_dashboard.html:78
 msgid "Delete widget"
-msgstr ""
+msgstr "Виджетти жок кылуу"
 
 #: templates/dashboard/custom_dashboard.html:79
 msgid "Are you sure want to delete this widget?"
-msgstr ""
+msgstr "Бул виджетти чын эле жок кылгыңыз келеби"
 
 #: templates/dashboard/custom_dashboard_tools.html:11
 #: templates/dashboard/custom_dashboard_tools.html:12
 #: templates/dashboard/custom_dashboard_tools.html:18
 msgid "Reset widgets"
-msgstr ""
+msgstr "Виджеттерди баштапкы абалга келтирүү"
 
 #: templates/dashboard/custom_dashboard_tools.html:19
 msgid "Are you sure want to reset widgets?"
-msgstr ""
+msgstr "Виджеттерди чын эле баштапкы абалга келтиргиңиз келеби?"
 
 #: templates/dashboard/modules/active_customer_statistics.html:4
 msgid "PAU"
-msgstr ""
+msgstr "PAU"
 
 #: templates/dashboard/modules/activity_info.html:72
 #: templates/dashboard/modules/average_post_statistics.html:4
 msgid "Orders"
-msgstr ""
+msgstr "Заказдар"
 
 #: templates/dashboard/modules/average_post_statistics.html:14
 msgid "Total"
-msgstr ""
+msgstr "Бардыгы"
 
 #: templates/dashboard/modules/average_post_statistics.html:15
 msgid "Average"
-msgstr ""
+msgstr "Орточо"
 
 #: templates/dashboard/modules/customer_points_earned.html:7
 msgid "Top points earned users"
-msgstr ""
+msgstr "Эң көп упайлар топтолгон колдонуучулар"
 
 #: templates/dashboard/modules/customer_points_earned.html:42
 #: templates/dashboard/modules/customer_points_used.html:42
 msgid "Photo"
-msgstr ""
+msgstr "Фото"
 
 #: templates/dashboard/modules/customer_points_earned.html:47
 #: templates/dashboard/modules/customer_points_used.html:47
 msgid "Count"
-msgstr ""
+msgstr "Сан"
 
 #: templates/dashboard/modules/customer_points_earned.html:51
 #: templates/dashboard/modules/customer_points_used.html:51
 msgid "Name"
-msgstr ""
+msgstr "аты"
 
 #: templates/dashboard/modules/customer_points_used.html:7
 msgid "Top points used users"
@@ -525,28 +525,28 @@ msgstr ""
 
 #: templates/dashboard/modules/customer_total.html:4
 msgid "Total customers"
-msgstr ""
+msgstr "Жалпы кардарлар"
 
 #: templates/dashboard/modules/new_customer_statistics.html:4
 msgid "New customers"
-msgstr ""
+msgstr "New customers"
 
 #: templates/dashboard/modules/point_statistics.html:4
 msgid "Points"
-msgstr ""
+msgstr "Упайлар"
 
 #: templates/dashboard/modules/point_statistics.html:8
 msgid "Earned"
-msgstr ""
+msgstr "Тапкан"
 
 #: templates/dashboard/modules/point_statistics.html:10
 msgid "Used"
-msgstr ""
+msgstr "Колдонулган"
 
 #: templates/dashboard/modules/post_statistics.html:4
 msgid "Revenue"
-msgstr ""
+msgstr "Киреше"
 
 #: templates/dashboard/modules/post_total.html:4
 msgid "Total posts"
-msgstr ""
+msgstr "Жалпы посттор"
