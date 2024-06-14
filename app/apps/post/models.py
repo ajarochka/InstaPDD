@@ -1,8 +1,8 @@
 from django.utils.translation import gettext_lazy as _
+from .choices import PostStatus, PostMediaType
 from django.contrib.auth import get_user_model
 from apps.core.fields import OSMPointField
 from apps.category.models import Category
-from .choices import PostStatus
 from django.db import models
 
 UserModel = get_user_model()
@@ -28,10 +28,11 @@ class Post(models.Model):
         return f'{self.user} - {self.created_at.strftime("%Y-%m-%d %H:%M")}'
 
 
-class PostImage(models.Model):
+class PostMedia(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, verbose_name=_('Post'))
-    file = models.ImageField(_('File'), upload_to='photos/%Y/%m/%d')
+    file = models.FileField(_('File'), upload_to='photos/%Y/%m/%d')
     file_id = models.CharField(_('Telegram bot file id'), max_length=255, blank=True, null=True)
+    file_type = models.CharField(_('Type'), max_length=24, choices=PostMediaType.choices, default=PostMediaType.IMAGE)
     created_at = models.DateTimeField(_('Created at'), auto_now_add=True)
 
     class Meta:

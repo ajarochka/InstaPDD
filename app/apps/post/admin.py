@@ -1,6 +1,6 @@
 # from bot.main import bot_delete_message, CHANNEL_NAME, bot_send_post
 from django.utils.translation import gettext_lazy as _
-from .models import Post, PostComment, PostImage
+from .models import Post, PostComment, PostMedia
 from leaflet.admin import LeafletGeoAdmin
 from django.utils.html import format_html
 from collections.abc import Iterable
@@ -24,8 +24,8 @@ class PostCommentInline(admin.TabularInline):
     }
 
 
-class PostImageInline(admin.TabularInline):
-    model = PostImage
+class PostMediaInline(admin.TabularInline):
+    model = PostMedia
     extra = 0
     readonly_fields = ('get_preview',)
 
@@ -45,7 +45,7 @@ class PostAdmin(LeafletGeoAdmin):
     list_display_links = ('id', 'user',)
     search_fields = ('user__username', 'user__first_name', 'user__last_name', 'category__name',)
     list_filter = ('category',)
-    inlines = (PostCommentInline, PostImageInline,)
+    inlines = (PostCommentInline, PostMediaInline,)
 
     @admin.display(description=_('Status'))
     def get_status(self, obj):

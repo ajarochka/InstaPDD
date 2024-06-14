@@ -9,6 +9,7 @@
 import sys
 import io
 import os
+from collections.abc import Iterable
 
 # Configure script before using Django ORM
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -25,15 +26,15 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.client.default import DefaultBotProperties
 from aiogram.fsm.storage.memory import MemoryStorage
 from apps.category.models import Violator, Category
-from typing import Callable, Dict, Any, Awaitable
 from aiogram.filters import CommandStart, Command
+from typing import Callable, Dict, Any, Awaitable
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.utils.formatting import Text, Bold
 from django.contrib.auth import get_user_model
-from apps.post.models import Post, PostImage
+from apps.post.models import Post, PostMedia
 from aiogram.fsm.context import FSMContext
 from django.contrib.gis.geos import Point
-from apps.post.choices import PostStatus
+from apps.post.choices import PostStatus, PostMediaType
 from asgiref.sync import sync_to_async
 from django.utils import translation
 from aiogram.enums import ParseMode
@@ -50,6 +51,7 @@ from aiogram.types import (
     FSInputFile,
     PhotoSize,
     Message,
+    Video,
 )
 
 loop = asyncio.new_event_loop()
@@ -183,16 +185,21 @@ class AlbumMiddleware(BaseMiddleware):
         self.latency = latency
         super().__init__()
 
-    async def __call__(self, handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
-                       event: TelegramObject,
-                       data: Dict[str, Any]) -> Any:
-        if not event.media_group_id or not event.photo:
+    async def __call__(
+            self,
+            handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+            event: TelegramObject,
+            data: Dict[str, Any]
+    ) -> Any:
+        if not event.media_group_id:
             return await handler(event, data)
         try:
-            self.album_data[event.media_group_id].append(event.photo)
+            m = event.photo or event.video
+            self.album_data[event.media_group_id].append(m)
             return
         except KeyError:
-            self.album_data[event.media_group_id] = [event.photo]
+            m = event.photo or event.video
+            self.album_data[event.media_group_id] = [m]
             await asyncio.sleep(self.latency)
             event.model_config["is_last"] = True
             data["album"] = self.album_data[event.media_group_id]
@@ -308,15 +315,15 @@ async def new_post_step_two_cb(query: CallbackQuery, state: FSMContext):
     await query.answer(_('category selected'))
     await state.set_state(PostCreateForm.photo)
     await bot.edit_message_text(
-        _('Please send photos, max 3 allowed'), query.from_user.id, query.message.message_id
+        _('Please send photo or video, max 3 allowed'), query.from_user.id, query.message.message_id
     )
 
 
 @dp.message(PostCreateForm.photo)
-async def new_post_step_three(message: Message, state: FSMContext, album: list[PhotoSize] = None):
-    photos = album or [message.photo] if message.photo else []
+async def new_post_step_three(message: Message, state: FSMContext, album: list[PhotoSize | Video] = None):
+    photos = album or [message.photo] if message.photo else [message.video] if message.video else []
     if not photos:
-        return await message.answer(_('Please send photos, max 3 allowed'))
+        return await message.answer(_('Please send photo or video, max 3 allowed'))
     data = await state.get_data()
     photo_list = data.get('photo', [])
     ask_inline_builder = InlineKeyboardBuilder()
@@ -325,7 +332,8 @@ async def new_post_step_three(message: Message, state: FSMContext, album: list[P
     if len(photo_list) < 3:
         for photo in photos[:3 - len(photo_list)]:
             # Each photo has 4 resolutions, the last one has the best quality.
-            photo_list.append(photo[-1])
+            p = photo[-1] if isinstance(photo, (list, tuple)) else photo
+            photo_list.append(p)
         await state.update_data(photo=photo_list)
     if len(photo_list) > 2:
         await state.set_state(PostCreateForm.location)
@@ -336,7 +344,7 @@ async def new_post_step_three(message: Message, state: FSMContext, album: list[P
         )
     else:
         await bot.send_message(
-            message.from_user.id, _('Finish photo upload?'),
+            message.from_user.id, _('Finish media upload?'),
             reply_markup=ask_inline_builder.as_markup()
         )
 
@@ -355,7 +363,7 @@ async def new_post_step_three_cb(query: CallbackQuery, state: FSMContext):
             _('Please send the location'), query.from_user.id,
             query.message.message_id, reply_markup=ask_inline_builder.as_markup()
         )
-    await bot.edit_message_text(_('Please send more photo'), query.from_user.id, query.message.message_id)
+    await bot.edit_message_text(_('Please send more photo or video'), query.from_user.id, query.message.message_id)
 
 
 @dp.message(PostCreateForm.location)
@@ -469,8 +477,9 @@ async def new_post_step_seven(message: Message, state: FSMContext):
     for photo in photos:
         fp = io.BytesIO()
         await bot.download(photo.file_id, fp)
-        await sync_to_async(PostImage.objects.create)(
-            post=post, file=File(fp, photo.file_unique_id), file_id=photo.file_id
+        file_type = PostMediaType.VIDEO if getattr(photo, 'mime_type', '').startswith('video') else PostMediaType.IMAGE
+        await sync_to_async(PostMedia.objects.create)(
+            post=post, file=File(fp, photo.file_unique_id), file_id=photo.file_id, file_type=file_type
         )
     await state.clear()
     msg = _('Thanks for your message, the request will be reviewed and we will return to you!')
@@ -556,7 +565,7 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
     post_inline_builder = InlineKeyboardBuilder()
     post = await sync_to_async(Post.objects.get)(id=post_id)
     ctg = await sync_to_async(Category.objects.get)(id=post.category_id)
-    queryset = await sync_to_async(PostImage.objects.filter)(post_id=post_id)
+    queryset = await sync_to_async(PostMedia.objects.filter)(post_id=post_id)
     photo_count = await sync_to_async(queryset.count)()
     photo = None
     if photo_count > photo_num:
@@ -574,7 +583,7 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
     if photo_count > 1:
         num = (photo_num + 1) % photo_count
         post_controls.append(InlineKeyboardButton(
-            text=f'{_("Next photo")} >', callback_data=f'post:{post_id}:photo_num:{num}')
+            text=f'{_("Next media")} >', callback_data=f'post:{post_id}:photo_num:{num}')
         )
     post_inline_builder.row(*post_controls)
     post_inline_builder.row(InlineKeyboardButton(
@@ -601,11 +610,17 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
     await bot.delete_message(query.from_user.id, query.message.message_id)
     # TODO: check if Telegram has the file for "file_id"
     if photo:
-        media = photo.file_id if photo.file_id else FSInputFile(photo.file.path)
-        msg = await bot.send_photo(
-            query.from_user.id, media, caption=txt.as_html(),
-            reply_markup=post_inline_builder.as_markup()
-        )
+        media = photo.file_id or FSInputFile(photo.file.path)
+        if photo.file_type == PostMediaType.IMAGE:
+            msg = await bot.send_photo(
+                query.from_user.id, media, caption=txt.as_html(),
+                reply_markup=post_inline_builder.as_markup()
+            )
+        elif photo.file_type == PostMediaType.VIDEO:
+            msg = await bot.send_video(
+                query.from_user.id, media, caption=txt.as_html(),
+                reply_markup=post_inline_builder.as_markup()
+            )
         if not photo.file_id:
             photo.file_id = msg.photo[-1].file_id
             await sync_to_async(photo.save)()
@@ -701,7 +716,7 @@ async def search_license_plate_post_info_cb(query: CallbackQuery, state: FSMCont
     post_inline_builder = InlineKeyboardBuilder()
     post = await sync_to_async(Post.objects.get)(id=post_id)
     ctg = await sync_to_async(Category.objects.get)(id=post.category_id)
-    queryset = await sync_to_async(PostImage.objects.filter)(post_id=post_id)
+    queryset = await sync_to_async(PostMedia.objects.filter)(post_id=post_id)
     photo_count = await sync_to_async(queryset.count)()
     photo = None
     if photo_count > photo_num:
@@ -711,7 +726,7 @@ async def search_license_plate_post_info_cb(query: CallbackQuery, state: FSMCont
     if photo_count > 1:
         num = (photo_num + 1) % photo_count
         post_controls.append(InlineKeyboardButton(
-            text=f'{_("Next photo")} >', callback_data=f'search_post_info:{post_id}:page:{page}:photo_num:{num}')
+            text=f'{_("Next media")} >', callback_data=f'search_post_info:{post_id}:page:{page}:photo_num:{num}')
         )
     post_inline_builder.row(*post_controls)
     post_inline_builder.row(InlineKeyboardButton(
@@ -738,11 +753,17 @@ async def search_license_plate_post_info_cb(query: CallbackQuery, state: FSMCont
     await bot.delete_message(query.from_user.id, query.message.message_id)
     # TODO: check if Telegram has the file for "file_id"
     if photo:
-        media = photo.file_id if photo.file_id else FSInputFile(photo.file.path)
-        msg = await bot.send_photo(
-            query.from_user.id, media, caption=txt.as_html(),
-            reply_markup=post_inline_builder.as_markup()
-        )
+        media = photo.file_id or FSInputFile(photo.file.path)
+        if photo.file_type == PostMediaType.IMAGE:
+            msg = await bot.send_photo(
+                query.from_user.id, media, caption=txt.as_html(),
+                reply_markup=post_inline_builder.as_markup()
+            )
+        elif photo.file_type == PostMediaType.VIDEO:
+            msg = await bot.send_video(
+                query.from_user.id, media, caption=txt.as_html(),
+                reply_markup=post_inline_builder.as_markup()
+            )
         if not photo.file_id:
             photo.file_id = msg.photo[-1].file_id
             await sync_to_async(photo.save)()
@@ -828,7 +849,7 @@ async def post_update_photo_cb(query: CallbackQuery, state: FSMContext):
     data = try_parse_query_data(query.data)
     post_id = data.get('post')
     photo_num = int(data.get('photo_num', 0))
-    queryset = await sync_to_async(PostImage.objects.filter)(post_id=post_id)
+    queryset = await sync_to_async(PostMedia.objects.filter)(post_id=post_id)
     photo_count = await sync_to_async(queryset.count)()
     state_data = await state.get_data()
     page = state_data.get('page', 1)
@@ -852,7 +873,7 @@ async def post_update_photo_cb(query: CallbackQuery, state: FSMContext):
     if photo_count > 1:
         num = (photo_num + 1) % photo_count
         photo_controls.append(InlineKeyboardButton(
-            text=f'{_("Next photo")} >', callback_data=f'post_update:photo:post:{post_id}:page:{page}:photo_num:{num}')
+            text=f'{_("Next media")} >', callback_data=f'post_update:photo:post:{post_id}:page:{page}:photo_num:{num}')
         )
     photo_inline_builder.row(*photo_controls)
     photo_inline_builder.row(InlineKeyboardButton(
@@ -861,10 +882,15 @@ async def post_update_photo_cb(query: CallbackQuery, state: FSMContext):
     await bot.delete_message(query.from_user.id, query.message.message_id)
     # TODO: check if Telegram has the file for "file_id"
     if photo:
-        media = photo.file_id if photo.file_id else FSInputFile(photo.file.path)
-        msg = await bot.send_photo(
-            query.from_user.id, media, reply_markup=photo_inline_builder.as_markup()
-        )
+        media = photo.file_id or FSInputFile(photo.file.path)
+        if photo.file_type == PostMediaType.IMAGE:
+            msg = await bot.send_photo(
+                query.from_user.id, media, reply_markup=photo_inline_builder.as_markup()
+            )
+        elif photo.file_type == PostMediaType.VIDEO:
+            msg = await bot.send_video(
+                query.from_user.id, media, reply_markup=photo_inline_builder.as_markup()
+            )
         if not photo.file_id:
             photo.file_id = msg.photo[-1].file_id
             await sync_to_async(photo.save)()
@@ -880,7 +906,7 @@ async def photo_update_delete_cb(query: CallbackQuery, state: FSMContext):
     data = try_parse_query_data(query.data)
     post_id = data.get('post')
     photo_id = data.get('photo')
-    photo = await sync_to_async(PostImage.objects.get)(id=photo_id)
+    photo = await sync_to_async(PostMedia.objects.get)(id=photo_id)
     await sync_to_async(photo.delete)()
     await bot.delete_message(query.from_user.id, query.message.message_id)
     await query.answer(_('Photo delete'))
@@ -898,7 +924,7 @@ async def photo_update_delete_cb(query: CallbackQuery, state: FSMContext):
 async def photo_update_add_cb(query: CallbackQuery, state: FSMContext):
     await bot.delete_message(query.from_user.id, query.message.message_id)
     data = try_parse_query_data(query.data)
-    msg = _('Please send photos, max 3 allowed, if exceeded, will substitute existing photo')
+    msg = _('Please send photo or video, max 3 allowed, if exceeded, will substitute existing photo')
     await query.answer(_('Add photo'))
     await state.set_state(PostUpdateForm.photo)
     await state.update_data(post_id=data.get('post'))
@@ -910,13 +936,13 @@ async def photo_update_add_cb(query: CallbackQuery, state: FSMContext):
 async def photo_update_add_complete(message: Message, state: FSMContext, album: list[PhotoSize] = None):
     photos = album or [message.photo] if message.photo else []
     if not photos:
-        msg = _('Please send photos, max 3 allowed, if exceeded, will substitute existing photo')
+        msg = _('Please send photo or video, max 3 allowed, if exceeded, will substitute existing photo')
         return await message.answer(msg)
     photos = photos[:3]
     data = await state.get_data()
     post_id = data.get('post_id')
     page = data.get('page', 1)
-    queryset = await sync_to_async(PostImage.objects.filter)(post_id=post_id)
+    queryset = await sync_to_async(PostMedia.objects.filter)(post_id=post_id)
     count = await sync_to_async(queryset.count)()
     existing_photos = await sync_to_async(list)(queryset)
     while len(photos) + count > 3:
@@ -926,8 +952,9 @@ async def photo_update_add_complete(message: Message, state: FSMContext, album: 
         # Each photo has 4 resolutions, the last one has the best quality.
         fp = io.BytesIO()
         await bot.download(photo[-1].file_id, fp)
-        await sync_to_async(PostImage.objects.create)(
-            post_id=post_id, file=File(fp, photo[-1].file_unique_id), file_id=photo[-1].file_id
+        file_type = PostMediaType.VIDEO if getattr(photo, 'mime_type', '').startswith('video') else PostMediaType.IMAGE
+        await sync_to_async(PostMedia.objects.create)(
+            post_id=post_id, file=File(fp, photo[-1].file_unique_id), file_id=photo[-1].file_id, file_type=file_type
         )
     await state.clear()
     post_inline_builder = InlineKeyboardBuilder()
@@ -1153,7 +1180,7 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
     post = await sync_to_async(Post.objects.get)(id=post_id)
     user = await sync_to_async(UserModel.objects.get)(id=post.user_id)
     ctg = await sync_to_async(Category.objects.get)(id=post.category_id)
-    queryset = await sync_to_async(PostImage.objects.filter)(post_id=post_id)
+    queryset = await sync_to_async(PostMedia.objects.filter)(post_id=post_id)
     photo_count = await sync_to_async(queryset.count)()
     photo = None
     if photo_count > photo_num:
@@ -1171,7 +1198,7 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
     if photo_count > 1:
         num = (photo_num + 1) % photo_count
         post_controls.append(InlineKeyboardButton(
-            text=f'{_("Next photo")} >', callback_data=f'post_review:{post_id}:photo_num:{num}')
+            text=f'{_("Next media")} >', callback_data=f'post_review:{post_id}:photo_num:{num}')
         )
     post_inline_builder.row(*post_controls)
     post_inline_builder.row(InlineKeyboardButton(
@@ -1199,11 +1226,17 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
     await bot.delete_message(query.from_user.id, query.message.message_id)
     # TODO: check if Telegram has the file for "file_id"
     if photo:
-        media = photo.file_id if photo.file_id else FSInputFile(photo.file.path)
-        msg = await bot.send_photo(
-            query.from_user.id, media, caption=txt.as_html(),
-            reply_markup=post_inline_builder.as_markup()
-        )
+        media = photo.file_id or FSInputFile(photo.file.path)
+        if photo.file_type == PostMediaType.IMAGE:
+            msg = await bot.send_photo(
+                query.from_user.id, media, caption=txt.as_html(),
+                reply_markup=post_inline_builder.as_markup()
+            )
+        elif photo.file_type == PostMediaType.VIDEO:
+            msg = await bot.send_video(
+                query.from_user.id, media, caption=txt.as_html(),
+                reply_markup=post_inline_builder.as_markup()
+            )
         if not photo.file_id:
             photo.file_id = msg.photo[-1].file_id
             await sync_to_async(photo.save)()
@@ -1254,7 +1287,7 @@ async def posts_page_cb(query: CallbackQuery, state: FSMContext):
 
 async def _bot_send_post(chat_id, post_id):
     post = await sync_to_async(Post.objects.get)(id=post_id)
-    images = await sync_to_async(PostImage.objects.filter)(post_id=post_id)
+    images = await sync_to_async(PostMedia.objects.filter)(post_id=post_id)
     ctg = await sync_to_async(Category.objects.get)(id=post.category_id)
     txt = Text(
         Bold(_('Category')), ': ', ctg.name, '\n',
