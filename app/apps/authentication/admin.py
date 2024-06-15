@@ -18,5 +18,13 @@ class PermissionAdmin(admin.ModelAdmin):
     ordering = ('name',)
 
 
+class BotAdminAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'tg_id', 'created_at')
+    list_display_links = ('id', 'name', 'tg_id')
+    search_fields = ('name', 'tg_id')
+    ordering = ('-created_at',)
+
+
 admin.site.register(Profile, ProfileAdmin)
+admin.site.register(BotAdmin, BotAdminAdmin)
 admin.site.register(Permission, PermissionAdmin)

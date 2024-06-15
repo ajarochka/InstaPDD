@@ -609,7 +609,6 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
         Bold(_('Description')), ': ', post.description
     )
     await bot.delete_message(query.from_user.id, query.message.message_id)
-    # TODO: check if Telegram has the file for "file_id"
     if photo:
         media = photo.file_id or FSInputFile(photo.file.path)
         if photo.file_type == PostMediaType.IMAGE:
@@ -1104,7 +1103,7 @@ async def post_delete_cb(query: CallbackQuery, state: FSMContext):
 
 
 @dp.callback_query(F.data.casefold().startswith(f'post_action:{PostAction.APPROVE}'), PostPageForm.page)
-async def post_delete_cb(query: CallbackQuery, state: FSMContext):
+async def post_approve_cb(query: CallbackQuery, state: FSMContext):
     data = try_parse_query_data(query.data)
     post_id = data.get('post')
     post = await sync_to_async(Post.objects.filter)(id=post_id)
@@ -1126,7 +1125,7 @@ async def post_delete_cb(query: CallbackQuery, state: FSMContext):
 
 
 @dp.callback_query(F.data.casefold().startswith(f'post_action:{PostAction.REJECT}'), PostPageForm.page)
-async def post_delete_cb(query: CallbackQuery, state: FSMContext):
+async def post_reject_cb(query: CallbackQuery, state: FSMContext):
     data = try_parse_query_data(query.data)
     post_id = data.get('post')
     post = await sync_to_async(Post.objects.filter)(id=post_id)
@@ -1145,6 +1144,7 @@ async def post_delete_cb(query: CallbackQuery, state: FSMContext):
     )
 
 
+# TODO: Move ADMIN_ID_LIST to django models.
 @dp.message(Command('pending'), F.from_user.id.in_(ADMIN_ID_LIST))
 async def pending_posts(message: Message, state: FSMContext) -> None:
     await state.clear()
@@ -1310,9 +1310,14 @@ async def _bot_send_post(chat_id, post_id):
         media.append(m)
     if media:
         media[0].caption = txt.as_html()
-        return await bot.send_media_group(chat_id, media)
-    # Should never be called
-    return await bot.send_message(chat_id, txt.as_html())
+        msgs = await bot.send_media_group(chat_id, media)
+    else:
+        # Should never be called
+        msgs = await bot.send_message(chat_id, txt.as_html())
+    if post.location:
+        lon = post.location.x
+        lat = post.location.y
+        await bot.send_location(chat_id, lat, lon, reply_to_message_id=msgs[0].message_id)
 
 
 def bot_send_post(chat_id, post_id):

@@ -10,3 +10,10 @@ class CustomToken(Token):
 
 class Profile(AbstractUser):
     phone = models.CharField(_('Phone'), max_length=32, blank=True, null=True)
+
+
+class BotAdmin(models.Model):
+    name = models.CharField(_('Name'), max_length=64)
+    tg_id = models.PositiveIntegerField(_('Telegram bot admin'))
+    active = models.BooleanField(_('Active'), default=True)
+    created_at = models.DateTimeField(_('Created at'), auto_now_add=True)
