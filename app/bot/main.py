@@ -86,7 +86,7 @@ HELP_MESSAGE = '''Use /new_post command to create post.
 Follow the steps to fill the information.
 '''
 
-ADMIN_ID_LIST = (22177377, 291338438)
+ADMIN_ID_LIST = (22177377, 291338438, 6114051493)
 
 PAGE_SIZE = 3
 YES = 'yes'
@@ -597,12 +597,12 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
     )
     if post.license_plate:
         txt += Text(Bold(_('License plate')), ': ', post.license_plate, '\n')
-    if post.location:
-        txt += Text(
-            Bold(_('Location')), ':\n',
-            f'  {_("Longitude")}: ', post.location.x, '\n',
-            f'  {_("Latitude")}; ', post.location.y, '\n'
-        )
+    # if post.location:
+    #     txt += Text(
+    #         Bold(_('Location')), ':\n',
+    #         f'  {_("Longitude")}: ', post.location.x, '\n',
+    #         f'  {_("Latitude")}; ', post.location.y, '\n'
+    #     )
     if post.address:
         txt += Text(Bold(_('Address')), ': ', post.address, '\n')
     txt += Text(
@@ -740,12 +740,12 @@ async def search_license_plate_post_info_cb(query: CallbackQuery, state: FSMCont
     )
     if post.license_plate:
         txt += Text(Bold(_('License plate')), ': ', post.license_plate, '\n')
-    if post.location:
-        txt += Text(
-            Bold(_('Location')), ':\n',
-            f'  {_("Longitude")}: ', post.location.x, '\n',
-            f'  {_("Latitude")}; ', post.location.y, '\n'
-        )
+    # if post.location:
+    #     txt += Text(
+    #         Bold(_('Location')), ':\n',
+    #         f'  {_("Longitude")}: ', post.location.x, '\n',
+    #         f'  {_("Latitude")}; ', post.location.y, '\n'
+    #     )
     if post.address:
         txt += Text(Bold(_('Address')), ': ', post.address, '\n')
     txt += Text(
@@ -1213,12 +1213,12 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
     )
     if post.license_plate:
         txt += Text(Bold(_('License plate')), ': ', post.license_plate, '\n')
-    if post.location:
-        txt += Text(
-            Bold(_('Location')), ':\n',
-            f'  {_("Longitude")}: ', post.location.x, '\n',
-            f'  {_("Latitude")}; ', post.location.y, '\n'
-        )
+    # if post.location:
+    #     txt += Text(
+    #         Bold(_('Location')), ':\n',
+    #         f'  {_("Longitude")}: ', post.location.x, '\n',
+    #         f'  {_("Latitude")}; ', post.location.y, '\n'
+    #     )
     if post.address:
         txt += Text(Bold(_('Address')), ': ', post.address, '\n')
     txt += Text(
