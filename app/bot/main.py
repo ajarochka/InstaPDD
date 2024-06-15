@@ -355,7 +355,7 @@ async def new_post_step_three_cb(query: CallbackQuery, state: FSMContext):
     if not data:
         return
     if data.get('finish_photo') == YES:
-        await query.answer(_('Photo uploaded'))
+        await query.answer(_('Media uploaded'))
         await state.set_state(PostCreateForm.location)
         ask_inline_builder = InlineKeyboardBuilder()
         ask_inline_builder.button(text=_('Skip this step'), callback_data=f'finish_location:{YES}')
@@ -482,7 +482,8 @@ async def new_post_step_seven(message: Message, state: FSMContext):
             post=post, file=File(fp, photo.file_unique_id), file_id=photo.file_id, file_type=file_type
         )
     await state.clear()
-    msg = _('Thanks for your message, the request will be reviewed and we will return to you!')
+    msg = _('Thanks for your message, the request will be reviewed and we will return to you! '
+            'You can see your post in @citizen_kg channel after approval.')
     await message.answer(msg, reply_markup=ReplyKeyboardRemove())
 
 
@@ -853,7 +854,7 @@ async def post_update_photo_cb(query: CallbackQuery, state: FSMContext):
     photo_count = await sync_to_async(queryset.count)()
     state_data = await state.get_data()
     page = state_data.get('page', 1)
-    await query.answer(_('Update photo'))
+    await query.answer(_('Update media'))
     photo_inline_builder = InlineKeyboardBuilder()
     photo = None
     photo_controls = []
@@ -868,7 +869,7 @@ async def post_update_photo_cb(query: CallbackQuery, state: FSMContext):
         )
     if photo_count < 3:
         photo_controls.append(InlineKeyboardButton(
-            text=_('Add photo'), callback_data=f'post_update:add_photo:post:{post_id}:page:{page}')
+            text=_('Add media'), callback_data=f'post_update:add_photo:post:{post_id}:page:{page}')
         )
     if photo_count > 1:
         num = (photo_num + 1) % photo_count
@@ -896,7 +897,7 @@ async def post_update_photo_cb(query: CallbackQuery, state: FSMContext):
             await sync_to_async(photo.save)()
     else:
         await bot.send_message(
-            query.from_user.id, _('No photo found'),
+            query.from_user.id, _('No media found'),
             reply_markup=photo_inline_builder.as_markup()
         )
 
@@ -924,7 +925,7 @@ async def photo_update_delete_cb(query: CallbackQuery, state: FSMContext):
 async def photo_update_add_cb(query: CallbackQuery, state: FSMContext):
     await bot.delete_message(query.from_user.id, query.message.message_id)
     data = try_parse_query_data(query.data)
-    msg = _('Please send photo or video, max 3 allowed, if exceeded, will substitute existing photo')
+    msg = _('Please send photo or video, max 3 allowed, if exceeded, will substitute existing media')
     await query.answer(_('Add photo'))
     await state.set_state(PostUpdateForm.photo)
     await state.update_data(post_id=data.get('post'))
@@ -936,7 +937,7 @@ async def photo_update_add_cb(query: CallbackQuery, state: FSMContext):
 async def photo_update_add_complete(message: Message, state: FSMContext, album: list[PhotoSize] = None):
     photos = album or [message.photo] if message.photo else []
     if not photos:
-        msg = _('Please send photo or video, max 3 allowed, if exceeded, will substitute existing photo')
+        msg = _('Please send photo or video, max 3 allowed, if exceeded, will substitute existing media')
         return await message.answer(msg)
     photos = photos[:3]
     data = await state.get_data()
@@ -961,7 +962,7 @@ async def photo_update_add_complete(message: Message, state: FSMContext, album: 
     post_inline_builder.row(InlineKeyboardButton(
         text=f'< {_("Back to post")}', callback_data=f'post:{post_id}:page:{page}')
     )
-    await bot.send_message(message.from_user.id, _('Photo updated'), reply_markup=post_inline_builder.as_markup())
+    await bot.send_message(message.from_user.id, _('Media updated'), reply_markup=post_inline_builder.as_markup())
 
 
 @dp.callback_query(F.data.casefold().startswith(f'post_update:location'))

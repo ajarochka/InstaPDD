@@ -1,11 +1,10 @@
 # from bot.main import bot_delete_message, CHANNEL_NAME, bot_send_post
 from django.utils.translation import gettext_lazy as _
 from .models import Post, PostComment, PostMedia
+from .choices import PostStatus, PostMediaType
 from leaflet.admin import LeafletGeoAdmin
 from django.utils.html import format_html
-from collections.abc import Iterable
 from django.contrib import admin
-from .choices import PostStatus
 from django.db import models
 from django import forms
 
@@ -33,11 +32,19 @@ class PostMediaInline(admin.TabularInline):
     def get_preview(self, obj):
         if not (obj and obj.file):
             return ''
-        return format_html(
-            f'<a href="javascript:void(0)" class="image-modal-btn">'
-            f'<img style="width: 5rem; height: 5rem; object-fit: cover; border-radius: 0.3rem;" src="{obj.file.url}"></img>'
-            f'</a>'
-        )
+        if obj.file_type == PostMediaType.IMAGE:
+            return format_html(
+                f'<a href="javascript:void(0)" class="image-modal-btn">'
+                f'<img style="width: 5rem; height: 5rem; object-fit: cover; border-radius: 0.3rem;" src="{obj.file.url}"></img>'
+                f'</a>'
+            )
+        elif obj.file_type == PostMediaType.VIDEO:
+            return format_html(
+                f'<a href="javascript:void(0)" class="video-modal-btn">'
+                # f'<span src="{obj.file.url}">video</span>'
+                f'<img style="width: 5rem; height: 5rem; object-fit: cover; border-radius: 0.3rem;" src="{obj.file.url}"></img>'
+                f'</a>'
+            )
 
 
 class PostAdmin(LeafletGeoAdmin):

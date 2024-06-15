@@ -3,7 +3,7 @@
 
 {% block extrastyle %}
     {{ block.super }}
-    <link rel="stylesheet" type="text/css" href="{% static "css/styles.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}"/>
 {% endblock %}
 
 
@@ -28,11 +28,32 @@
         </div>
     </div>
 
+    <div id="video-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <div class="modal-header row">
+                    <div class="col-10">
+                        <div style="font-size: 1.5rem">{% trans 'Video preview' %}</div>
+                    </div>
+                    <div class="col-2 text-right">
+                        <span id="video-close-modal-btn" class="close-modal-btn">&times;</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-body text-center">
+                <video id="modal-vid" width="720" height="480" controls>
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+        </div>
+    </div>
+
     <script>
         document.addEventListener("DOMContentLoaded", onDomLoaded);
 
         function onDomLoaded() {
             setupImgModal();
+            setupVidModal();
         }
 
         function setupImgModal() {
@@ -45,6 +66,29 @@
                     let imgSrc = btns[i].firstElementChild.src;
                     modal.style.display = "block";
                     modalImage.src = imgSrc;
+                }
+            }
+            closeBtn.onclick = function () {
+                modal.style.display = "none";
+            }
+            window.onclick = function (event) {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            }
+        }
+
+        function setupVidModal() {
+            let modal = document.getElementById("video-modal");
+            let btns = document.getElementsByClassName("video-modal-btn");
+            let closeBtn = document.getElementById("video-close-modal-btn");
+            let modalVideo = document.getElementById('modal-vid');
+            let sources = modalVideo.getElementsByTagName('source');
+            for (let i = 0; i < btns.length; i++) {
+                btns[i].onclick = function () {
+                    let vidSrc = btns[i].firstElementChild.src;
+                    modal.style.display = "block";
+                    modalVideo.src = vidSrc;
                 }
             }
             closeBtn.onclick = function () {

@@ -29,7 +29,7 @@ class Post(models.Model):
 
 
 class PostMedia(models.Model):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, verbose_name=_('Post'))
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='media', verbose_name=_('Post'))
     file = models.FileField(_('File'), upload_to='photos/%Y/%m/%d')
     file_id = models.CharField(_('Telegram bot file id'), max_length=255, blank=True, null=True)
     file_type = models.CharField(_('Type'), max_length=24, choices=PostMediaType.choices, default=PostMediaType.IMAGE)

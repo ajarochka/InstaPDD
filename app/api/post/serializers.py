@@ -8,7 +8,7 @@ class PostSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
     status_name = serializers.SerializerMethodField(read_only=True)
     location = serializers.SerializerMethodField(read_only=True)
-    images = serializers.SerializerMethodField(read_only=True)
+    media = serializers.SerializerMethodField(read_only=True)
     comments_count = serializers.SerializerMethodField(read_only=True)
     created_at = serializers.SerializerMethodField(read_only=True)
 
@@ -25,9 +25,9 @@ class PostSerializer(serializers.ModelSerializer):
         lon, lat = obj.location.coords
         return {'latitude': lat, 'longitude': lon}
 
-    def get_images(self, obj):
+    def get_media(self, obj):
         request = self.context.get('request')
-        return [request.build_absolute_uri(image.file.url) for image in obj.postimage_set.all()]
+        return [request.build_absolute_uri(m.file.url) for m in obj.media.all()]
 
     def get_comments_count(self, obj):
         return obj.comments.count()
