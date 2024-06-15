@@ -9,7 +9,6 @@
 import sys
 import io
 import os
-from collections.abc import Iterable
 
 # Configure script before using Django ORM
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -24,6 +23,7 @@ from aiogram.utils.i18n import gettext as _, I18n, SimpleI18nMiddleware
 from aiogram import Bot, Dispatcher, types, F, BaseMiddleware
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.client.default import DefaultBotProperties
+from apps.post.choices import PostStatus, PostMediaType
 from aiogram.fsm.storage.memory import MemoryStorage
 from apps.category.models import Violator, Category
 from aiogram.filters import CommandStart, Command
@@ -34,7 +34,6 @@ from django.contrib.auth import get_user_model
 from apps.post.models import Post, PostMedia
 from aiogram.fsm.context import FSMContext
 from django.contrib.gis.geos import Point
-from apps.post.choices import PostStatus, PostMediaType
 from asgiref.sync import sync_to_async
 from django.utils import translation
 from aiogram.enums import ParseMode
@@ -46,6 +45,7 @@ from aiogram.types import (
     InlineKeyboardButton,
     ReplyKeyboardRemove,
     InputMediaPhoto,
+    InputMediaVideo,
     TelegramObject,
     CallbackQuery,
     FSInputFile,
@@ -1302,7 +1302,10 @@ async def _bot_send_post(chat_id, post_id):
     )
     media = []
     async for obj in images:
-        m = InputMediaPhoto(media=obj.file_id if obj.file_id else open(obj.file.path, 'rb'))
+        if obj.file_type == PostMediaType.IMAGE:
+            m = InputMediaPhoto(media=obj.file_id if obj.file_id else open(obj.file.path, 'rb'))
+        elif obj.file_type == PostMediaType.VIDEO:
+            m = InputMediaVideo(media=obj.file_id if obj.file_id else open(obj.file.path, 'rb'))
         media.append(m)
     if media:
         media[0].caption = txt.as_html()
