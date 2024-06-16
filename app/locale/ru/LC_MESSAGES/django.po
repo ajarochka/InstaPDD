@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-15 23:12+0600\n"
+"POT-Creation-Date: 2024-06-16 20:00+0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -92,11 +92,25 @@ msgstr "Дата истечения"
 msgid "Phone"
 msgstr "Телефон"
 
-#: apps/category/models.py:6 apps/category/models.py:13
+#: apps/authentication/models.py:16 apps/category/models.py:6
+#: apps/category/models.py:13
 #: templates/dashboard/modules/customer_points_earned.html:51
 #: templates/dashboard/modules/customer_points_used.html:51
 msgid "Name"
 msgstr "Имя"
+
+#: apps/authentication/models.py:17
+msgid "Telegram bot admin"
+msgstr "Админ Telegram бота"
+
+#: apps/authentication/models.py:18 apps/post/models.py:20
+msgid "Active"
+msgstr "Активный"
+
+#: apps/authentication/models.py:19 apps/post/models.py:22
+#: apps/post/models.py:36 apps/post/models.py:46
+msgid "Created at"
+msgstr "Дата создания"
 
 #: apps/category/models.py:14
 msgid "Violator"
@@ -106,8 +120,8 @@ msgstr "Нарушитель"
 msgid "Preview"
 msgstr "Предосмотр"
 
-#: apps/post/admin.py:56 apps/post/models.py:14 bot/main.py:596 bot/main.py:739
-#: bot/main.py:1212
+#: apps/post/admin.py:57 apps/post/models.py:14 bot/main.py:621 bot/main.py:776
+#: bot/main.py:1263
 msgid "Status"
 msgstr "Статус"
 
@@ -131,31 +145,31 @@ msgstr ""
 msgid "Video"
 msgstr ""
 
-#: apps/post/models.py:12 apps/post/models.py:43 bot/main.py:1209
+#: apps/post/models.py:12 apps/post/models.py:43 bot/main.py:1260
 msgid "User"
 msgstr "Пользователь"
 
-#: apps/post/models.py:13 bot/main.py:594 bot/main.py:737 bot/main.py:1210
-#: bot/main.py:1294
+#: apps/post/models.py:13 bot/main.py:619 bot/main.py:774 bot/main.py:1261
+#: bot/main.py:1346
 msgid "Category"
 msgstr "Категория"
 
-#: apps/post/models.py:15 bot/main.py:607 bot/main.py:750 bot/main.py:1223
-#: bot/main.py:1300
+#: apps/post/models.py:15 bot/main.py:626 bot/main.py:781 bot/main.py:1268
+#: bot/main.py:1352
 msgid "Address"
 msgstr "Адрес"
 
-#: apps/post/models.py:16 bot/main.py:599 bot/main.py:742 bot/main.py:1215
-#: bot/main.py:1298
+#: apps/post/models.py:16 bot/main.py:624 bot/main.py:779 bot/main.py:1266
+#: bot/main.py:1350
 msgid "License plate"
 msgstr "Номер машины"
 
-#: apps/post/models.py:17 bot/main.py:609 bot/main.py:752 bot/main.py:1225
-#: bot/main.py:1302
+#: apps/post/models.py:17 bot/main.py:628 bot/main.py:783 bot/main.py:1270
+#: bot/main.py:1354
 msgid "Description"
 msgstr "Описание"
 
-#: apps/post/models.py:18 bot/main.py:602 bot/main.py:745 bot/main.py:1218
+#: apps/post/models.py:18
 msgid "Location"
 msgstr "Местоположение"
 
@@ -163,17 +177,9 @@ msgstr "Местоположение"
 msgid "Location image"
 msgstr "Изображение местоположения"
 
-#: apps/post/models.py:20
-msgid "Active"
-msgstr ""
-
 #: apps/post/models.py:21
 msgid "Telegram bot message id"
 msgstr ""
-
-#: apps/post/models.py:22 apps/post/models.py:36 apps/post/models.py:46
-msgid "Created at"
-msgstr "Дата создания"
 
 #: apps/post/models.py:32 apps/post/models.py:44
 msgid "Post"
@@ -195,103 +201,103 @@ msgstr ""
 msgid "Text"
 msgstr ""
 
-#: bot/main.py:223
+#: bot/main.py:231
 msgid "Create new post"
 msgstr "Новый пост"
 
-#: bot/main.py:224 bot/main.py:261
+#: bot/main.py:232 bot/main.py:269
 msgid "Help!"
 msgstr "Помощь!"
 
-#: bot/main.py:226
+#: bot/main.py:234
 msgid "Welcome to IPDD!"
 msgstr "Добро пожаловать в IPDD!"
 
-#: bot/main.py:247
+#: bot/main.py:255
 msgid "Canceled"
 msgstr "Отменено"
 
-#: bot/main.py:269 bot/main.py:414 bot/main.py:434 bot/main.py:455
-#: bot/main.py:1030
+#: bot/main.py:277 bot/main.py:422 bot/main.py:442 bot/main.py:463
+#: bot/main.py:1068
 msgid "Please send the license plate"
 msgstr "Пожалуйста отправьте номер машины"
 
-#: bot/main.py:281
+#: bot/main.py:289
 msgid "Please choose the violator"
 msgstr "Пожалуйста выберите нарушителя"
 
-#: bot/main.py:288
+#: bot/main.py:296
 msgid "New post"
 msgstr "Новый пост"
 
-#: bot/main.py:297
+#: bot/main.py:305
 msgid "Violator selected"
 msgstr "Нарушитель выбран"
 
-#: bot/main.py:304
+#: bot/main.py:312
 msgid "Please select category"
 msgstr "Пожалуйста выберите категорию"
 
-#: bot/main.py:315
+#: bot/main.py:323
 msgid "category selected"
 msgstr "Категория выбрана"
 
-#: bot/main.py:318 bot/main.py:326
+#: bot/main.py:326 bot/main.py:334
 msgid "Please send photo or video, max 3 allowed"
 msgstr "Пожалуйста отправьте фото или видео, максимум 3"
 
-#: bot/main.py:330
+#: bot/main.py:338
 msgid "Yes"
 msgstr "Да"
 
-#: bot/main.py:331
+#: bot/main.py:339
 msgid "No"
 msgstr "Нет"
 
-#: bot/main.py:341 bot/main.py:361 bot/main.py:373 bot/main.py:378
-#: bot/main.py:396 bot/main.py:411 bot/main.py:420 bot/main.py:430
-#: bot/main.py:453
+#: bot/main.py:349 bot/main.py:369 bot/main.py:381 bot/main.py:386
+#: bot/main.py:404 bot/main.py:419 bot/main.py:428 bot/main.py:438
+#: bot/main.py:461
 msgid "Skip this step"
 msgstr "Пропустить этот шаг"
 
-#: bot/main.py:343 bot/main.py:363 bot/main.py:374 bot/main.py:398
-#: bot/main.py:971 bot/main.py:984
+#: bot/main.py:351 bot/main.py:371 bot/main.py:382 bot/main.py:406
+#: bot/main.py:1009 bot/main.py:1022
 msgid "Please send the location"
 msgstr "Пожалуйста отправьте местоположение"
 
-#: bot/main.py:347
+#: bot/main.py:355
 msgid "Finish media upload?"
 msgstr "Завершить загрузку медиа файлов"
 
-#: bot/main.py:358
+#: bot/main.py:366
 msgid "Media uploaded"
 msgstr "Медиа файлы загружены"
 
-#: bot/main.py:366
+#: bot/main.py:374
 msgid "Please send more photo or video"
 msgstr "Пожалуйста отправьте больше фото или видео"
 
-#: bot/main.py:379 bot/main.py:391 bot/main.py:422 bot/main.py:1002
+#: bot/main.py:387 bot/main.py:399 bot/main.py:430 bot/main.py:1040
 msgid "Please send the address"
 msgstr "Пожалуйста отправьте адрес"
 
-#: bot/main.py:388
+#: bot/main.py:396
 msgid "Location skipped"
 msgstr "Местоположение пропущено"
 
-#: bot/main.py:409
+#: bot/main.py:417
 msgid "Address skipped"
 msgstr "Адрес пропущен"
 
-#: bot/main.py:445
+#: bot/main.py:453
 msgid "License plate skipped"
 msgstr "Номер машины пропущен"
 
-#: bot/main.py:448 bot/main.py:464 bot/main.py:1061
+#: bot/main.py:456 bot/main.py:472 bot/main.py:1099
 msgid "Please send the description"
 msgstr "Пожалуйста отправьте описание"
 
-#: bot/main.py:485
+#: bot/main.py:494
 msgid ""
 "Thanks for your message, the request will be reviewed and we will return to "
 "you! You can see your post in @citizen_kg channel after approval."
@@ -299,79 +305,83 @@ msgstr ""
 "Спасибо за ваше сообщение, ваш запрос будет обработан и мы сообщим вам "
 "результат! Вы можете увидеть свой пост в канале @citizen_kg после одобрения."
 
-#: bot/main.py:501
+#: bot/main.py:500
+msgid "New /pending posts for approval available."
+msgstr ""
+
+#: bot/main.py:514
 msgid "Your have no posts yet"
 msgstr "У вас пока нет постов"
 
-#: bot/main.py:512 bot/main.py:549
+#: bot/main.py:525 bot/main.py:562
 msgid "Your posts"
 msgstr "Ваши посты"
 
-#: bot/main.py:563 bot/main.py:716
+#: bot/main.py:577 bot/main.py:742
 msgid "Post details"
 msgstr "Детали поста"
 
-#: bot/main.py:578
+#: bot/main.py:592
 msgid "Update post"
 msgstr "Обновить пост"
 
-#: bot/main.py:582
+#: bot/main.py:596
 msgid "Delete post"
 msgstr "Удалить пост"
 
-#: bot/main.py:595 bot/main.py:738 bot/main.py:1211 bot/main.py:1295
+#: bot/main.py:620 bot/main.py:775 bot/main.py:1262 bot/main.py:1347
 msgid "Creation date"
 msgstr "Дата создания"
 
-#: bot/main.py:662 bot/main.py:701
+#: bot/main.py:687 bot/main.py:726
 msgid "Found posts"
 msgstr "Найденные посты"
 
-#: bot/main.py:665
+#: bot/main.py:690
 msgid "No matches found"
 msgstr "Совпадений не найдено"
 
-#: bot/main.py:784
+#: bot/main.py:822
 msgid "Post update"
 msgstr "Обновить пост"
 
-#: bot/main.py:792
+#: bot/main.py:830
 msgid "Please select what you would like to update"
 msgstr "Пожалуйста выберите что вы хотите обновить"
 
-#: bot/main.py:807
+#: bot/main.py:845
 msgid "Select category"
 msgstr "Выбор категории"
 
-#: bot/main.py:843
+#: bot/main.py:881
 msgid "Category updated"
 msgstr "Категория обновлена"
 
-#: bot/main.py:857
+#: bot/main.py:895
 msgid "Update media"
 msgstr "Обновить медиа файлы"
 
-#: bot/main.py:867
+#: bot/main.py:905
 msgid "Delete"
 msgstr "Удалить"
 
-#: bot/main.py:872
+#: bot/main.py:910
 msgid "Add media"
 msgstr ""
 
-#: bot/main.py:900
+#: bot/main.py:938
 msgid "No media found"
 msgstr "Медиа файлов не найдено"
 
-#: bot/main.py:913
+#: bot/main.py:951
 msgid "Photo delete"
 msgstr "Удалить фото"
 
-#: bot/main.py:919
+#: bot/main.py:957
 msgid "Photo deleted"
 msgstr "Фото удалено"
 
-#: bot/main.py:928 bot/main.py:940
+#: bot/main.py:966 bot/main.py:978
 msgid ""
 "Please send photo or video, max 3 allowed, if exceeded, will substitute "
 "existing media"
@@ -379,71 +389,71 @@ msgstr ""
 "Пожалуйста отправьте фото или видео, максимум 3, если превысит, будут "
 "заменены предыдущие медиа файлы"
 
-#: bot/main.py:929
+#: bot/main.py:967
 msgid "Add photo"
 msgstr "Добавить фото"
 
-#: bot/main.py:965
+#: bot/main.py:1003
 msgid "Media updated"
 msgstr "Медиа файлы обновлены"
 
-#: bot/main.py:974
+#: bot/main.py:1012
 msgid "Update location"
 msgstr "Обновить местоположение"
 
-#: bot/main.py:996
+#: bot/main.py:1034
 msgid "Location updated"
 msgstr "Местоположение обновлено"
 
-#: bot/main.py:1005
+#: bot/main.py:1043
 msgid "Update address"
 msgstr "Обновить адрес"
 
-#: bot/main.py:1024
+#: bot/main.py:1062
 msgid "Address updated"
 msgstr "Адрес обновлен"
 
-#: bot/main.py:1033
+#: bot/main.py:1071
 msgid "Update license plate"
 msgstr "Обновить номер машины"
 
-#: bot/main.py:1053
+#: bot/main.py:1091
 msgid "License plate updated"
 msgstr "Номер машины обновлен"
 
-#: bot/main.py:1064
+#: bot/main.py:1102
 msgid "Update description"
 msgstr "Обновить описание"
 
-#: bot/main.py:1083
+#: bot/main.py:1121
 msgid "Description updated"
 msgstr "Описание обновлено"
 
-#: bot/main.py:1092 bot/main.py:1101
+#: bot/main.py:1130 bot/main.py:1139
 msgid "Post deleted"
 msgstr "Пост удален"
 
-#: bot/main.py:1112 bot/main.py:1121
+#: bot/main.py:1150 bot/main.py:1159
 msgid "Post approved"
 msgstr "Пост подтвержден"
 
-#: bot/main.py:1134 bot/main.py:1143
+#: bot/main.py:1172 bot/main.py:1181
 msgid "Post rejected"
 msgstr "Пост отклонен"
 
-#: bot/main.py:1165 bot/main.py:1284
+#: bot/main.py:1204 bot/main.py:1336
 msgid "Pending posts"
 msgstr "Посты в ожидании"
 
-#: bot/main.py:1177
+#: bot/main.py:1217
 msgid "Post review"
 msgstr "Рассмотрение поста"
 
-#: bot/main.py:1193
+#: bot/main.py:1233
 msgid "Approve"
 msgstr "подтвердить"
 
-#: bot/main.py:1197
+#: bot/main.py:1237
 msgid "Reject"
 msgstr "отклонить"
 
@@ -542,6 +552,10 @@ msgstr ""
 #: templates/admin/post/post/change_form.html:18
 msgid "Image preview"
 msgstr "Предосмотр изображения"
+
+#: templates/admin/post/post/change_form.html:36
+msgid "Video preview"
+msgstr "Предосмотр видео"
 
 #: templates/dashboard/custom_dashboard.html:78
 msgid "Delete widget"
@@ -689,6 +703,24 @@ msgstr "Список постов"
 
 msgid "Cancelled"
 msgstr "Отменено"
+
+msgid "Next"
+msgstr "След"
+
+msgid "Prev"
+msgstr "Пред"
+
+msgid "Back to list"
+msgstr "Назад к списку"
+
+msgid "Next media"
+msgstr "След медиа"
+
+msgid "Show media"
+msgstr "Показать медиа"
+
+msgid "Show location"
+msgstr "Показать локацию"
 
 msgid ""
 "Use /new_post command to create post.\n"

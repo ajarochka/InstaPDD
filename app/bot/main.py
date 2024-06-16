@@ -9,7 +9,6 @@
 import sys
 import io
 import os
-from datetime import datetime, timedelta
 
 # Configure script before using Django ORM
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -35,6 +34,7 @@ from django.contrib.auth import get_user_model
 from apps.post.models import Post, PostMedia
 from aiogram.fsm.context import FSMContext
 from django.contrib.gis.geos import Point
+from datetime import datetime, timedelta
 from asgiref.sync import sync_to_async
 from django.utils import translation
 from aiogram.enums import ParseMode
