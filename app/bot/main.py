@@ -112,6 +112,11 @@ class PostAction(StrEnum):
     REJECT = 'reject'
 
 
+class PostDisplayMode(StrEnum):
+    MEDIA = 'media'
+    LOCATION = 'location'
+
+
 class PostCreateForm(StatesGroup):
     violator_id = State()
     category_id = State()
@@ -566,6 +571,7 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
         return
     post_id = data.get('post')
     photo_num = int(data.get('photo_num', 0))
+    display_mode = data.get('display_mode', PostDisplayMode.MEDIA.value)
     if not post_id or not post_id.isdigit():
         return await query.answer(f'{_("Invalid post id")} {post_id}')
     await query.answer(_('Post details'))
@@ -589,12 +595,23 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
         post_controls.append(InlineKeyboardButton(
             text=_('Delete post'), callback_data=f'post_action:{PostAction.DELETE}:post:{post_id}')
         )
+    if display_mode == PostDisplayMode.MEDIA.value and post.location:
+        post_controls.append(InlineKeyboardButton(
+            text=f'{_("Show location")}',
+            callback_data=f'post:{post_id}:display_mode:{PostDisplayMode.LOCATION.value}')
+        )
+    elif display_mode == PostDisplayMode.LOCATION.value:
+        post_controls.append(InlineKeyboardButton(
+            text=f'{_("Show media")}',
+            callback_data=f'post:{post_id}:display_mode:{PostDisplayMode.MEDIA.value}')
+        )
     if photo_count > 1:
         num = (photo_num + 1) % photo_count
         post_controls.append(InlineKeyboardButton(
             text=f'{_("Next media")} >', callback_data=f'post:{post_id}:photo_num:{num}')
         )
-    post_inline_builder.row(*post_controls)
+    post_inline_builder.add(*post_controls)
+    post_inline_builder.adjust(2)
     post_inline_builder.row(InlineKeyboardButton(
         text=f'< {_("Back to list")}', callback_data=f'posts_page:{page}:user:{post.user_id}')
     )
@@ -605,19 +622,13 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
     )
     if post.license_plate:
         txt += Text(Bold(_('License plate')), ': ', post.license_plate, '\n')
-    # if post.location:
-    #     txt += Text(
-    #         Bold(_('Location')), ':\n',
-    #         f'  {_("Longitude")}: ', post.location.x, '\n',
-    #         f'  {_("Latitude")}; ', post.location.y, '\n'
-    #     )
     if post.address:
         txt += Text(Bold(_('Address')), ': ', post.address, '\n')
     txt += Text(
         Bold(_('Description')), ': ', post.description
     )
     await bot.delete_message(query.from_user.id, query.message.message_id)
-    if photo:
+    if display_mode == PostDisplayMode.MEDIA.value and photo:
         media = photo.file_id or FSInputFile(photo.file.path)
         if photo.file_type == PostMediaType.IMAGE:
             msg = await bot.send_photo(
@@ -632,6 +643,13 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
         if not photo.file_id:
             photo.file_id = msg.photo[-1].file_id
             await sync_to_async(photo.save)()
+    elif display_mode == PostDisplayMode.LOCATION.value and post.location:
+        lon = post.location.x
+        lat = post.location.y
+        await bot.send_location(
+            query.from_user.id, lat, lon,
+            reply_markup=post_inline_builder.as_markup()
+        )
     else:
         await bot.send_message(
             query.from_user.id, txt.as_html(),
@@ -718,6 +736,7 @@ async def search_license_plate_post_info_cb(query: CallbackQuery, state: FSMCont
     post_id = data.get('search_post_info')
     page = data.get('page', 1)
     photo_num = int(data.get('photo_num', 0))
+    display_mode = data.get('display_mode', PostDisplayMode.MEDIA.value)
     if not post_id or not post_id.isdigit():
         return await query.answer(f'{_("Invalid post id")} {post_id}')
     await query.answer(_('Post details'))
@@ -736,7 +755,18 @@ async def search_license_plate_post_info_cb(query: CallbackQuery, state: FSMCont
         post_controls.append(InlineKeyboardButton(
             text=f'{_("Next media")} >', callback_data=f'search_post_info:{post_id}:page:{page}:photo_num:{num}')
         )
-    post_inline_builder.row(*post_controls)
+    if display_mode == PostDisplayMode.MEDIA.value and post.location:
+        post_controls.append(InlineKeyboardButton(
+            text=f'{_("Show location")}',
+            callback_data=f'search_post_info:{post_id}:display_mode:{PostDisplayMode.LOCATION.value}')
+        )
+    elif display_mode == PostDisplayMode.LOCATION.value:
+        post_controls.append(InlineKeyboardButton(
+            text=f'{_("Show media")}',
+            callback_data=f'search_post_info:{post_id}:display_mode:{PostDisplayMode.MEDIA.value}')
+        )
+    post_inline_builder.add(*post_controls)
+    post_inline_builder.adjust(2)
     post_inline_builder.row(InlineKeyboardButton(
         text=f'< {_("Back to list")}', callback_data=f'search_page:{page}')
     )
@@ -747,12 +777,6 @@ async def search_license_plate_post_info_cb(query: CallbackQuery, state: FSMCont
     )
     if post.license_plate:
         txt += Text(Bold(_('License plate')), ': ', post.license_plate, '\n')
-    # if post.location:
-    #     txt += Text(
-    #         Bold(_('Location')), ':\n',
-    #         f'  {_("Longitude")}: ', post.location.x, '\n',
-    #         f'  {_("Latitude")}; ', post.location.y, '\n'
-    #     )
     if post.address:
         txt += Text(Bold(_('Address')), ': ', post.address, '\n')
     txt += Text(
@@ -760,7 +784,7 @@ async def search_license_plate_post_info_cb(query: CallbackQuery, state: FSMCont
     )
     await bot.delete_message(query.from_user.id, query.message.message_id)
     # TODO: check if Telegram has the file for "file_id"
-    if photo:
+    if display_mode == PostDisplayMode.MEDIA.value and photo:
         media = photo.file_id or FSInputFile(photo.file.path)
         if photo.file_type == PostMediaType.IMAGE:
             msg = await bot.send_photo(
@@ -775,6 +799,13 @@ async def search_license_plate_post_info_cb(query: CallbackQuery, state: FSMCont
         if not photo.file_id:
             photo.file_id = msg.photo[-1].file_id
             await sync_to_async(photo.save)()
+    elif display_mode == PostDisplayMode.LOCATION.value and post.location:
+        lon = post.location.x
+        lat = post.location.y
+        await bot.send_location(
+            query.from_user.id, lat, lon,
+            reply_markup=post_inline_builder.as_markup()
+        )
     else:
         await bot.send_message(
             query.from_user.id, txt.as_html(),
@@ -1180,6 +1211,7 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
         return
     post_id = data.get('post_review')
     photo_num = int(data.get('photo_num', 0))
+    display_mode = data.get('display_mode', PostDisplayMode.MEDIA.value)
     if not post_id or not post_id.isdigit():
         return await query.answer(f'{_("Invalid post id")} {post_id}')
     await query.answer(_('Post review'))
@@ -1204,12 +1236,23 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
         post_controls.append(InlineKeyboardButton(
             text=_('Reject'), callback_data=f'post_action:{PostAction.REJECT}:post:{post_id}')
         )
+    if display_mode == PostDisplayMode.MEDIA.value and post.location:
+        post_controls.append(InlineKeyboardButton(
+            text=f'{_("Show location")}',
+            callback_data=f'post_review:{post_id}:display_mode:{PostDisplayMode.LOCATION.value}')
+        )
+    elif display_mode == PostDisplayMode.LOCATION.value:
+        post_controls.append(InlineKeyboardButton(
+            text=f'{_("Show media")}',
+            callback_data=f'post_review:{post_id}:display_mode:{PostDisplayMode.MEDIA.value}')
+        )
     if photo_count > 1:
         num = (photo_num + 1) % photo_count
         post_controls.append(InlineKeyboardButton(
             text=f'{_("Next media")} >', callback_data=f'post_review:{post_id}:photo_num:{num}')
         )
-    post_inline_builder.row(*post_controls)
+    post_inline_builder.add(*post_controls)
+    post_inline_builder.adjust(2)
     post_inline_builder.row(InlineKeyboardButton(
         text=f'< {_("Back to list")}', callback_data=f'pending:{page}')
     )
@@ -1221,12 +1264,6 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
     )
     if post.license_plate:
         txt += Text(Bold(_('License plate')), ': ', post.license_plate, '\n')
-    # if post.location:
-    #     txt += Text(
-    #         Bold(_('Location')), ':\n',
-    #         f'  {_("Longitude")}: ', post.location.x, '\n',
-    #         f'  {_("Latitude")}; ', post.location.y, '\n'
-    #     )
     if post.address:
         txt += Text(Bold(_('Address')), ': ', post.address, '\n')
     txt += Text(
@@ -1234,7 +1271,7 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
     )
     await bot.delete_message(query.from_user.id, query.message.message_id)
     # TODO: check if Telegram has the file for "file_id"
-    if photo:
+    if display_mode == PostDisplayMode.MEDIA.value and photo:
         media = photo.file_id or FSInputFile(photo.file.path)
         if photo.file_type == PostMediaType.IMAGE:
             msg = await bot.send_photo(
@@ -1249,6 +1286,13 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
         if not photo.file_id:
             photo.file_id = msg.photo[-1].file_id
             await sync_to_async(photo.save)()
+    elif display_mode == PostDisplayMode.LOCATION.value and post.location:
+        lon = post.location.x
+        lat = post.location.y
+        await bot.send_location(
+            query.from_user.id, lat, lon,
+            reply_markup=post_inline_builder.as_markup()
+        )
     else:
         await bot.send_message(
             query.from_user.id, txt.as_html(),
