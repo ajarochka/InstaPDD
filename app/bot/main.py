@@ -9,6 +9,7 @@
 import sys
 import io
 import os
+from datetime import datetime, timedelta
 
 # Configure script before using Django ORM
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -100,6 +101,8 @@ UPDATE_FIELDS_LIST = (
     ('address', 'Address'),
     ('description', 'Description'),
 )
+
+last_notification_time = None
 
 
 class PostAction(StrEnum):
@@ -466,6 +469,7 @@ async def new_post_step_six(message: Message, state: FSMContext):
 
 @dp.message(PostCreateForm.description)
 async def new_post_step_seven(message: Message, state: FSMContext):
+    global last_notification_time
     await state.update_data(description=message.text)
     data = await state.get_data()
     user, created = await sync_to_async(UserModel.objects.get_or_create)(username=message.from_user.username)
@@ -485,6 +489,10 @@ async def new_post_step_seven(message: Message, state: FSMContext):
     msg = _('Thanks for your message, the request will be reviewed and we will return to you! '
             'You can see your post in @citizen_kg channel after approval.')
     await message.answer(msg, reply_markup=ReplyKeyboardRemove())
+    if not last_notification_time or datetime.now() - timedelta(hours=2) > last_notification_time:
+        last_notification_time = datetime.now()
+        for admin_id in ADMIN_ID_LIST:
+            await bot.send_message(admin_id, _('New /pending posts for approval available.'))
 
 
 @dp.message(Command('my_posts'))
