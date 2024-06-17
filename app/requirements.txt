@@ -3,6 +3,7 @@ aiogram_i18n==1.4
 Babel==2.15.0
 daphne==4.1.2
 Django==5.0.6
+django-celery-beat==2.6.0
 django-constance==3.1.0
 django-cors-headers==4.3.1
 django-filter==24.2
@@ -11,5 +12,6 @@ django-leaflet==0.30.0
 django-modeltranslation==0.19.3
 djangorestframework==3.15.1
 drf-yasg==1.21.7
+gevent==24.2.1
 pillow==10.3.0
 psycopg2==2.9.9

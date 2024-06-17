@@ -10,6 +10,8 @@ import sys
 import io
 import os
 
+from PIL import Image
+
 # Configure script before using Django ORM
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, BASE_DIR)
@@ -477,19 +479,7 @@ async def new_post_step_seven(message: Message, state: FSMContext):
     global last_notification_time
     await state.update_data(description=message.text)
     data = await state.get_data()
-    user, created = await sync_to_async(UserModel.objects.get_or_create)(username=message.from_user.username)
-    photos = data.pop('photo')
-    location = data.pop('location', None)
-    if location:
-        data['location'] = Point(x=location.longitude, y=location.latitude)
-    post = await sync_to_async(Post.objects.create)(user=user, **data)
-    for photo in photos:
-        fp = io.BytesIO()
-        await bot.download(photo.file_id, fp)
-        file_type = PostMediaType.VIDEO if getattr(photo, 'mime_type', '').startswith('video') else PostMediaType.IMAGE
-        await sync_to_async(PostMedia.objects.create)(
-            post=post, file=File(fp, photo.file_unique_id), file_id=photo.file_id, file_type=file_type
-        )
+    await create_post(message.from_user.username, data)
     await state.clear()
     msg = _('Thanks for your message, the request will be reviewed and we will return to you! '
             'You can see your post in @citizen_kg channel after approval.')
@@ -1338,7 +1328,7 @@ async def posts_page_cb(query: CallbackQuery, state: FSMContext):
     )
 
 
-async def _bot_send_post(chat_id, post_id):
+async def _bot_send_post(chat_id: int | str, post_id: int | str):
     post = await sync_to_async(Post.objects.get)(id=post_id)
     images = await sync_to_async(PostMedia.objects.filter)(post_id=post_id)
     ctg = await sync_to_async(Category.objects.get)(id=post.category_id)
@@ -1372,11 +1362,30 @@ async def _bot_send_post(chat_id, post_id):
         await bot.send_location(chat_id, lat, lon, reply_to_message_id=msgs[0].message_id)
 
 
-def bot_send_post(chat_id, post_id):
+async def create_post(username: str, data: dict):
+    photos = data.pop('photo')
+    location = data.pop('location', None)
+    user, created = await sync_to_async(UserModel.objects.get_or_create)(username=username)
+    if location:
+        data['location'] = Point(x=location.longitude, y=location.latitude)
+    post = await sync_to_async(Post.objects.create)(user=user, **data)
+    for photo in photos:
+        fp = io.BytesIO()
+        await bot.download(photo.file_id, fp)
+        file_type = PostMediaType.VIDEO if getattr(photo, 'mime_type', '').startswith('video') else PostMediaType.IMAGE
+        if file_type == PostMediaType.IMAGE:
+            img = Image.open(fp)
+            img.save(fp, format='jpeg', quality=90, optimize=True)
+        await sync_to_async(PostMedia.objects.create)(
+            post=post, file=File(fp, photo.file_unique_id), file_id=photo.file_id, file_type=file_type
+        )
+
+
+def bot_send_post(chat_id: int | str, post_id: int | str):
     return loop.run_until_complete(_bot_send_post(chat_id, post_id))
 
 
-def bot_delete_message(chat_id, message_id):
+def bot_delete_message(chat_id: int | str, message_id: int | str):
     """Message can be deleted only if it was sent less than 48 hours ago."""
     return loop.run_until_complete(bot.delete_message(chat_id, message_id))
 
