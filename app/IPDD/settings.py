@@ -49,6 +49,8 @@ INSTALLED_APPS = [
     'constance.backends.database',
     # Swagger docs
     'drf_yasg',
+    # Celery
+    'django_celery_beat',
     # Rest framework
     'rest_framework',
     'rest_framework.authtoken',
@@ -195,6 +197,24 @@ CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 CONSTANCE_CONFIG = {
     'TOKEN_TTL': (60 * 60 * 24, _('API authentication token lifetime.')),
 }
+
+# Redis configuration
+CACHE_TTL = 600  # Seconds
+REDIS_HOST = os.environ.get('REDIS_HOST', '127.0.0.1')
+REDIS_PORT = os.environ.get('REDIS_PORT', '6379')
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': f'redis://{REDIS_HOST}:{REDIS_PORT}',
+        'KEY_PREFIX': 'ipdd',
+        'TIMEOUT': CACHE_TTL,
+    }
+}
+
+# Celery configuration
+CELERY_BROKER_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/0'
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+CELERY_ENABLE_UTC = True
 
 # Django-Jet settings
 JET_SIDE_MENU_COMPACT = True

@@ -10,6 +10,7 @@ class PostCommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = PostComment
         exclude = ()
+        read_only_fields = ('post', 'user')
 
     def get_created_at(self, obj):
         return date_format(obj.created_at, format='j E Y, H:i', use_l10n=True)

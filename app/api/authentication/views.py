@@ -24,9 +24,11 @@ class RegisterApi(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
         username = data.get('username')
-        user, created = UserModel.objects.get_or_create(username=username, defaults=data)
+        user, created = UserModel.objects.get_or_create(username=username)
         if not created:
             raise UsernameAlreadyUsed
+        user.set_password(data['password1'])
+        user.save()
         token = CustomToken.objects.create(user=user)
         token.expires_at = timezone.now() + timedelta(seconds=config.TOKEN_TTL)
         token.save(update_fields=('expires_at',))

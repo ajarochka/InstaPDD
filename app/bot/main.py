@@ -10,6 +10,8 @@ import sys
 import io
 import os
 
+from PIL import Image
+
 # Configure script before using Django ORM
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, BASE_DIR)
@@ -23,17 +25,18 @@ from aiogram.utils.i18n import gettext as _, I18n, SimpleI18nMiddleware
 from aiogram import Bot, Dispatcher, types, F, BaseMiddleware
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.client.default import DefaultBotProperties
+from apps.post.choices import PostStatus, PostMediaType
 from aiogram.fsm.storage.memory import MemoryStorage
 from apps.category.models import Violator, Category
-from typing import Callable, Dict, Any, Awaitable
 from aiogram.filters import CommandStart, Command
+from typing import Callable, Dict, Any, Awaitable
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.utils.formatting import Text, Bold
 from django.contrib.auth import get_user_model
-from apps.post.models import Post, PostImage
+from apps.post.models import Post, PostMedia
 from aiogram.fsm.context import FSMContext
 from django.contrib.gis.geos import Point
-from apps.post.choices import PostStatus
+from datetime import datetime, timedelta
 from asgiref.sync import sync_to_async
 from django.utils import translation
 from aiogram.enums import ParseMode
@@ -45,11 +48,13 @@ from aiogram.types import (
     InlineKeyboardButton,
     ReplyKeyboardRemove,
     InputMediaPhoto,
+    InputMediaVideo,
     TelegramObject,
     CallbackQuery,
     FSInputFile,
     PhotoSize,
     Message,
+    Video,
 )
 
 loop = asyncio.new_event_loop()
@@ -84,7 +89,7 @@ HELP_MESSAGE = '''Use /new_post command to create post.
 Follow the steps to fill the information.
 '''
 
-ADMIN_ID_LIST = (22177377, 291338438)
+ADMIN_ID_LIST = (22177377, 291338438, 6114051493)
 
 PAGE_SIZE = 3
 YES = 'yes'
@@ -99,12 +104,19 @@ UPDATE_FIELDS_LIST = (
     ('description', 'Description'),
 )
 
+last_notification_time = None
+
 
 class PostAction(StrEnum):
     UPDATE = 'update'
     DELETE = 'delete'
     APPROVE = 'approve'
     REJECT = 'reject'
+
+
+class PostDisplayMode(StrEnum):
+    MEDIA = 'media'
+    LOCATION = 'location'
 
 
 class PostCreateForm(StatesGroup):
@@ -183,16 +195,21 @@ class AlbumMiddleware(BaseMiddleware):
         self.latency = latency
         super().__init__()
 
-    async def __call__(self, handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
-                       event: TelegramObject,
-                       data: Dict[str, Any]) -> Any:
-        if not event.media_group_id or not event.photo:
+    async def __call__(
+            self,
+            handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+            event: TelegramObject,
+            data: Dict[str, Any]
+    ) -> Any:
+        if not event.media_group_id:
             return await handler(event, data)
         try:
-            self.album_data[event.media_group_id].append(event.photo)
+            m = event.photo or event.video
+            self.album_data[event.media_group_id].append(m)
             return
         except KeyError:
-            self.album_data[event.media_group_id] = [event.photo]
+            m = event.photo or event.video
+            self.album_data[event.media_group_id] = [m]
             await asyncio.sleep(self.latency)
             event.model_config["is_last"] = True
             data["album"] = self.album_data[event.media_group_id]
@@ -308,15 +325,15 @@ async def new_post_step_two_cb(query: CallbackQuery, state: FSMContext):
     await query.answer(_('category selected'))
     await state.set_state(PostCreateForm.photo)
     await bot.edit_message_text(
-        _('Please send photos, max 3 allowed'), query.from_user.id, query.message.message_id
+        _('Please send photo or video, max 3 allowed'), query.from_user.id, query.message.message_id
     )
 
 
 @dp.message(PostCreateForm.photo)
-async def new_post_step_three(message: Message, state: FSMContext, album: list[PhotoSize] = None):
-    photos = album or [message.photo] if message.photo else []
+async def new_post_step_three(message: Message, state: FSMContext, album: list[PhotoSize | Video] = None):
+    photos = album or [message.photo] if message.photo else [message.video] if message.video else []
     if not photos:
-        return await message.answer(_('Please send photos, max 3 allowed'))
+        return await message.answer(_('Please send photo or video, max 3 allowed'))
     data = await state.get_data()
     photo_list = data.get('photo', [])
     ask_inline_builder = InlineKeyboardBuilder()
@@ -325,7 +342,8 @@ async def new_post_step_three(message: Message, state: FSMContext, album: list[P
     if len(photo_list) < 3:
         for photo in photos[:3 - len(photo_list)]:
             # Each photo has 4 resolutions, the last one has the best quality.
-            photo_list.append(photo[-1])
+            p = photo[-1] if isinstance(photo, (list, tuple)) else photo
+            photo_list.append(p)
         await state.update_data(photo=photo_list)
     if len(photo_list) > 2:
         await state.set_state(PostCreateForm.location)
@@ -336,7 +354,7 @@ async def new_post_step_three(message: Message, state: FSMContext, album: list[P
         )
     else:
         await bot.send_message(
-            message.from_user.id, _('Finish photo upload?'),
+            message.from_user.id, _('Finish media upload?'),
             reply_markup=ask_inline_builder.as_markup()
         )
 
@@ -347,7 +365,7 @@ async def new_post_step_three_cb(query: CallbackQuery, state: FSMContext):
     if not data:
         return
     if data.get('finish_photo') == YES:
-        await query.answer(_('Photo uploaded'))
+        await query.answer(_('Media uploaded'))
         await state.set_state(PostCreateForm.location)
         ask_inline_builder = InlineKeyboardBuilder()
         ask_inline_builder.button(text=_('Skip this step'), callback_data=f'finish_location:{YES}')
@@ -355,7 +373,7 @@ async def new_post_step_three_cb(query: CallbackQuery, state: FSMContext):
             _('Please send the location'), query.from_user.id,
             query.message.message_id, reply_markup=ask_inline_builder.as_markup()
         )
-    await bot.edit_message_text(_('Please send more photo'), query.from_user.id, query.message.message_id)
+    await bot.edit_message_text(_('Please send more photo or video'), query.from_user.id, query.message.message_id)
 
 
 @dp.message(PostCreateForm.location)
@@ -458,23 +476,18 @@ async def new_post_step_six(message: Message, state: FSMContext):
 
 @dp.message(PostCreateForm.description)
 async def new_post_step_seven(message: Message, state: FSMContext):
+    global last_notification_time
     await state.update_data(description=message.text)
     data = await state.get_data()
-    user, created = await sync_to_async(UserModel.objects.get_or_create)(username=message.from_user.username)
-    photos = data.pop('photo')
-    location = data.pop('location', None)
-    if location:
-        data['location'] = Point(x=location.longitude, y=location.latitude)
-    post = await sync_to_async(Post.objects.create)(user=user, **data)
-    for photo in photos:
-        fp = io.BytesIO()
-        await bot.download(photo.file_id, fp)
-        await sync_to_async(PostImage.objects.create)(
-            post=post, file=File(fp, photo.file_unique_id), file_id=photo.file_id
-        )
+    await create_post(message.from_user.username, data)
     await state.clear()
-    msg = _('Thanks for your message, the request will be reviewed and we will return to you!')
+    msg = _('Thanks for your message, the request will be reviewed and we will return to you! '
+            'You can see your post in @citizen_kg channel after approval.')
     await message.answer(msg, reply_markup=ReplyKeyboardRemove())
+    if not last_notification_time or datetime.now() - timedelta(hours=2) > last_notification_time:
+        last_notification_time = datetime.now()
+        for admin_id in ADMIN_ID_LIST:
+            await bot.send_message(admin_id, _('New /pending posts for approval available.'))
 
 
 @dp.message(Command('my_posts'))
@@ -548,6 +561,7 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
         return
     post_id = data.get('post')
     photo_num = int(data.get('photo_num', 0))
+    display_mode = data.get('display_mode', PostDisplayMode.MEDIA.value)
     if not post_id or not post_id.isdigit():
         return await query.answer(f'{_("Invalid post id")} {post_id}')
     await query.answer(_('Post details'))
@@ -556,7 +570,7 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
     post_inline_builder = InlineKeyboardBuilder()
     post = await sync_to_async(Post.objects.get)(id=post_id)
     ctg = await sync_to_async(Category.objects.get)(id=post.category_id)
-    queryset = await sync_to_async(PostImage.objects.filter)(post_id=post_id)
+    queryset = await sync_to_async(PostMedia.objects.filter)(post_id=post_id)
     photo_count = await sync_to_async(queryset.count)()
     photo = None
     if photo_count > photo_num:
@@ -571,12 +585,23 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
         post_controls.append(InlineKeyboardButton(
             text=_('Delete post'), callback_data=f'post_action:{PostAction.DELETE}:post:{post_id}')
         )
+    if display_mode == PostDisplayMode.MEDIA.value and post.location:
+        post_controls.append(InlineKeyboardButton(
+            text=f'{_("Show location")}',
+            callback_data=f'post:{post_id}:display_mode:{PostDisplayMode.LOCATION.value}')
+        )
+    elif display_mode == PostDisplayMode.LOCATION.value:
+        post_controls.append(InlineKeyboardButton(
+            text=f'{_("Show media")}',
+            callback_data=f'post:{post_id}:display_mode:{PostDisplayMode.MEDIA.value}')
+        )
     if photo_count > 1:
         num = (photo_num + 1) % photo_count
         post_controls.append(InlineKeyboardButton(
-            text=f'{_("Next photo")} >', callback_data=f'post:{post_id}:photo_num:{num}')
+            text=f'{_("Next media")} >', callback_data=f'post:{post_id}:photo_num:{num}')
         )
-    post_inline_builder.row(*post_controls)
+    post_inline_builder.add(*post_controls)
+    post_inline_builder.adjust(2)
     post_inline_builder.row(InlineKeyboardButton(
         text=f'< {_("Back to list")}', callback_data=f'posts_page:{page}:user:{post.user_id}')
     )
@@ -587,28 +612,34 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
     )
     if post.license_plate:
         txt += Text(Bold(_('License plate')), ': ', post.license_plate, '\n')
-    if post.location:
-        txt += Text(
-            Bold(_('Location')), ':\n',
-            f'  {_("Longitude")}: ', post.location.x, '\n',
-            f'  {_("Latitude")}; ', post.location.y, '\n'
-        )
     if post.address:
         txt += Text(Bold(_('Address')), ': ', post.address, '\n')
     txt += Text(
         Bold(_('Description')), ': ', post.description
     )
     await bot.delete_message(query.from_user.id, query.message.message_id)
-    # TODO: check if Telegram has the file for "file_id"
-    if photo:
-        media = photo.file_id if photo.file_id else FSInputFile(photo.file.path)
-        msg = await bot.send_photo(
-            query.from_user.id, media, caption=txt.as_html(),
-            reply_markup=post_inline_builder.as_markup()
-        )
+    if display_mode == PostDisplayMode.MEDIA.value and photo:
+        media = photo.file_id or FSInputFile(photo.file.path)
+        if photo.file_type == PostMediaType.IMAGE:
+            msg = await bot.send_photo(
+                query.from_user.id, media, caption=txt.as_html(),
+                reply_markup=post_inline_builder.as_markup()
+            )
+        elif photo.file_type == PostMediaType.VIDEO:
+            msg = await bot.send_video(
+                query.from_user.id, media, caption=txt.as_html(),
+                reply_markup=post_inline_builder.as_markup()
+            )
         if not photo.file_id:
             photo.file_id = msg.photo[-1].file_id
             await sync_to_async(photo.save)()
+    elif display_mode == PostDisplayMode.LOCATION.value and post.location:
+        lon = post.location.x
+        lat = post.location.y
+        await bot.send_location(
+            query.from_user.id, lat, lon,
+            reply_markup=post_inline_builder.as_markup()
+        )
     else:
         await bot.send_message(
             query.from_user.id, txt.as_html(),
@@ -695,13 +726,14 @@ async def search_license_plate_post_info_cb(query: CallbackQuery, state: FSMCont
     post_id = data.get('search_post_info')
     page = data.get('page', 1)
     photo_num = int(data.get('photo_num', 0))
+    display_mode = data.get('display_mode', PostDisplayMode.MEDIA.value)
     if not post_id or not post_id.isdigit():
         return await query.answer(f'{_("Invalid post id")} {post_id}')
     await query.answer(_('Post details'))
     post_inline_builder = InlineKeyboardBuilder()
     post = await sync_to_async(Post.objects.get)(id=post_id)
     ctg = await sync_to_async(Category.objects.get)(id=post.category_id)
-    queryset = await sync_to_async(PostImage.objects.filter)(post_id=post_id)
+    queryset = await sync_to_async(PostMedia.objects.filter)(post_id=post_id)
     photo_count = await sync_to_async(queryset.count)()
     photo = None
     if photo_count > photo_num:
@@ -711,9 +743,20 @@ async def search_license_plate_post_info_cb(query: CallbackQuery, state: FSMCont
     if photo_count > 1:
         num = (photo_num + 1) % photo_count
         post_controls.append(InlineKeyboardButton(
-            text=f'{_("Next photo")} >', callback_data=f'search_post_info:{post_id}:page:{page}:photo_num:{num}')
+            text=f'{_("Next media")} >', callback_data=f'search_post_info:{post_id}:page:{page}:photo_num:{num}')
         )
-    post_inline_builder.row(*post_controls)
+    if display_mode == PostDisplayMode.MEDIA.value and post.location:
+        post_controls.append(InlineKeyboardButton(
+            text=f'{_("Show location")}',
+            callback_data=f'search_post_info:{post_id}:display_mode:{PostDisplayMode.LOCATION.value}')
+        )
+    elif display_mode == PostDisplayMode.LOCATION.value:
+        post_controls.append(InlineKeyboardButton(
+            text=f'{_("Show media")}',
+            callback_data=f'search_post_info:{post_id}:display_mode:{PostDisplayMode.MEDIA.value}')
+        )
+    post_inline_builder.add(*post_controls)
+    post_inline_builder.adjust(2)
     post_inline_builder.row(InlineKeyboardButton(
         text=f'< {_("Back to list")}', callback_data=f'search_page:{page}')
     )
@@ -724,12 +767,6 @@ async def search_license_plate_post_info_cb(query: CallbackQuery, state: FSMCont
     )
     if post.license_plate:
         txt += Text(Bold(_('License plate')), ': ', post.license_plate, '\n')
-    if post.location:
-        txt += Text(
-            Bold(_('Location')), ':\n',
-            f'  {_("Longitude")}: ', post.location.x, '\n',
-            f'  {_("Latitude")}; ', post.location.y, '\n'
-        )
     if post.address:
         txt += Text(Bold(_('Address')), ': ', post.address, '\n')
     txt += Text(
@@ -737,15 +774,28 @@ async def search_license_plate_post_info_cb(query: CallbackQuery, state: FSMCont
     )
     await bot.delete_message(query.from_user.id, query.message.message_id)
     # TODO: check if Telegram has the file for "file_id"
-    if photo:
-        media = photo.file_id if photo.file_id else FSInputFile(photo.file.path)
-        msg = await bot.send_photo(
-            query.from_user.id, media, caption=txt.as_html(),
-            reply_markup=post_inline_builder.as_markup()
-        )
+    if display_mode == PostDisplayMode.MEDIA.value and photo:
+        media = photo.file_id or FSInputFile(photo.file.path)
+        if photo.file_type == PostMediaType.IMAGE:
+            msg = await bot.send_photo(
+                query.from_user.id, media, caption=txt.as_html(),
+                reply_markup=post_inline_builder.as_markup()
+            )
+        elif photo.file_type == PostMediaType.VIDEO:
+            msg = await bot.send_video(
+                query.from_user.id, media, caption=txt.as_html(),
+                reply_markup=post_inline_builder.as_markup()
+            )
         if not photo.file_id:
             photo.file_id = msg.photo[-1].file_id
             await sync_to_async(photo.save)()
+    elif display_mode == PostDisplayMode.LOCATION.value and post.location:
+        lon = post.location.x
+        lat = post.location.y
+        await bot.send_location(
+            query.from_user.id, lat, lon,
+            reply_markup=post_inline_builder.as_markup()
+        )
     else:
         await bot.send_message(
             query.from_user.id, txt.as_html(),
@@ -828,11 +878,11 @@ async def post_update_photo_cb(query: CallbackQuery, state: FSMContext):
     data = try_parse_query_data(query.data)
     post_id = data.get('post')
     photo_num = int(data.get('photo_num', 0))
-    queryset = await sync_to_async(PostImage.objects.filter)(post_id=post_id)
+    queryset = await sync_to_async(PostMedia.objects.filter)(post_id=post_id)
     photo_count = await sync_to_async(queryset.count)()
     state_data = await state.get_data()
     page = state_data.get('page', 1)
-    await query.answer(_('Update photo'))
+    await query.answer(_('Update media'))
     photo_inline_builder = InlineKeyboardBuilder()
     photo = None
     photo_controls = []
@@ -847,12 +897,12 @@ async def post_update_photo_cb(query: CallbackQuery, state: FSMContext):
         )
     if photo_count < 3:
         photo_controls.append(InlineKeyboardButton(
-            text=_('Add photo'), callback_data=f'post_update:add_photo:post:{post_id}:page:{page}')
+            text=_('Add media'), callback_data=f'post_update:add_photo:post:{post_id}:page:{page}')
         )
     if photo_count > 1:
         num = (photo_num + 1) % photo_count
         photo_controls.append(InlineKeyboardButton(
-            text=f'{_("Next photo")} >', callback_data=f'post_update:photo:post:{post_id}:page:{page}:photo_num:{num}')
+            text=f'{_("Next media")} >', callback_data=f'post_update:photo:post:{post_id}:page:{page}:photo_num:{num}')
         )
     photo_inline_builder.row(*photo_controls)
     photo_inline_builder.row(InlineKeyboardButton(
@@ -861,16 +911,21 @@ async def post_update_photo_cb(query: CallbackQuery, state: FSMContext):
     await bot.delete_message(query.from_user.id, query.message.message_id)
     # TODO: check if Telegram has the file for "file_id"
     if photo:
-        media = photo.file_id if photo.file_id else FSInputFile(photo.file.path)
-        msg = await bot.send_photo(
-            query.from_user.id, media, reply_markup=photo_inline_builder.as_markup()
-        )
+        media = photo.file_id or FSInputFile(photo.file.path)
+        if photo.file_type == PostMediaType.IMAGE:
+            msg = await bot.send_photo(
+                query.from_user.id, media, reply_markup=photo_inline_builder.as_markup()
+            )
+        elif photo.file_type == PostMediaType.VIDEO:
+            msg = await bot.send_video(
+                query.from_user.id, media, reply_markup=photo_inline_builder.as_markup()
+            )
         if not photo.file_id:
             photo.file_id = msg.photo[-1].file_id
             await sync_to_async(photo.save)()
     else:
         await bot.send_message(
-            query.from_user.id, _('No photo found'),
+            query.from_user.id, _('No media found'),
             reply_markup=photo_inline_builder.as_markup()
         )
 
@@ -880,7 +935,7 @@ async def photo_update_delete_cb(query: CallbackQuery, state: FSMContext):
     data = try_parse_query_data(query.data)
     post_id = data.get('post')
     photo_id = data.get('photo')
-    photo = await sync_to_async(PostImage.objects.get)(id=photo_id)
+    photo = await sync_to_async(PostMedia.objects.get)(id=photo_id)
     await sync_to_async(photo.delete)()
     await bot.delete_message(query.from_user.id, query.message.message_id)
     await query.answer(_('Photo delete'))
@@ -898,7 +953,7 @@ async def photo_update_delete_cb(query: CallbackQuery, state: FSMContext):
 async def photo_update_add_cb(query: CallbackQuery, state: FSMContext):
     await bot.delete_message(query.from_user.id, query.message.message_id)
     data = try_parse_query_data(query.data)
-    msg = _('Please send photos, max 3 allowed, if exceeded, will substitute existing photo')
+    msg = _('Please send photo or video, max 3 allowed, if exceeded, will substitute existing media')
     await query.answer(_('Add photo'))
     await state.set_state(PostUpdateForm.photo)
     await state.update_data(post_id=data.get('post'))
@@ -910,13 +965,13 @@ async def photo_update_add_cb(query: CallbackQuery, state: FSMContext):
 async def photo_update_add_complete(message: Message, state: FSMContext, album: list[PhotoSize] = None):
     photos = album or [message.photo] if message.photo else []
     if not photos:
-        msg = _('Please send photos, max 3 allowed, if exceeded, will substitute existing photo')
+        msg = _('Please send photo or video, max 3 allowed, if exceeded, will substitute existing media')
         return await message.answer(msg)
     photos = photos[:3]
     data = await state.get_data()
     post_id = data.get('post_id')
     page = data.get('page', 1)
-    queryset = await sync_to_async(PostImage.objects.filter)(post_id=post_id)
+    queryset = await sync_to_async(PostMedia.objects.filter)(post_id=post_id)
     count = await sync_to_async(queryset.count)()
     existing_photos = await sync_to_async(list)(queryset)
     while len(photos) + count > 3:
@@ -926,15 +981,16 @@ async def photo_update_add_complete(message: Message, state: FSMContext, album: 
         # Each photo has 4 resolutions, the last one has the best quality.
         fp = io.BytesIO()
         await bot.download(photo[-1].file_id, fp)
-        await sync_to_async(PostImage.objects.create)(
-            post_id=post_id, file=File(fp, photo[-1].file_unique_id), file_id=photo[-1].file_id
+        file_type = PostMediaType.VIDEO if getattr(photo, 'mime_type', '').startswith('video') else PostMediaType.IMAGE
+        await sync_to_async(PostMedia.objects.create)(
+            post_id=post_id, file=File(fp, photo[-1].file_unique_id), file_id=photo[-1].file_id, file_type=file_type
         )
     await state.clear()
     post_inline_builder = InlineKeyboardBuilder()
     post_inline_builder.row(InlineKeyboardButton(
         text=f'< {_("Back to post")}', callback_data=f'post:{post_id}:page:{page}')
     )
-    await bot.send_message(message.from_user.id, _('Photo updated'), reply_markup=post_inline_builder.as_markup())
+    await bot.send_message(message.from_user.id, _('Media updated'), reply_markup=post_inline_builder.as_markup())
 
 
 @dp.callback_query(F.data.casefold().startswith(f'post_update:location'))
@@ -1076,7 +1132,7 @@ async def post_delete_cb(query: CallbackQuery, state: FSMContext):
 
 
 @dp.callback_query(F.data.casefold().startswith(f'post_action:{PostAction.APPROVE}'), PostPageForm.page)
-async def post_delete_cb(query: CallbackQuery, state: FSMContext):
+async def post_approve_cb(query: CallbackQuery, state: FSMContext):
     data = try_parse_query_data(query.data)
     post_id = data.get('post')
     post = await sync_to_async(Post.objects.filter)(id=post_id)
@@ -1094,33 +1150,11 @@ async def post_delete_cb(query: CallbackQuery, state: FSMContext):
         reply_markup=post_inline_builder.as_markup()
     )
     # Send post to channel.
-    post = await sync_to_async(Post.objects.get)(id=post_id)
-    images = await sync_to_async(PostImage.objects.filter)(post_id=post_id)
-    ctg = await sync_to_async(Category.objects.get)(id=post.category_id)
-    txt = Text(
-        Bold(_('Category')), ': ', ctg.name, '\n',
-        Bold(_('Creation date')), ': ', post.created_at.strftime("%d-%m-%Y %H:%M"), '\n',
-    )
-    if post.license_plate:
-        txt += Text(Bold(_('License plate')), ': ', post.license_plate, '\n')
-    if post.address:
-        txt += Text(Bold(_('Address')), ': ', post.address, '\n')
-    txt += Text(
-        Bold(_('Description')), ': ', post.description
-    )
-    media = []
-    async for obj in images:
-        m = InputMediaPhoto(media=obj.file_id if obj.file_id else open(obj.file.path, 'rb'))
-        media.append(m)
-    if media:
-        media[0].caption=txt.as_html()
-        return await bot.send_media_group(CHANNEL_NAME, media)
-    # Should never be called
-    await bot.send_message(CHANNEL_NAME, txt.as_html())
+    await _bot_send_post(CHANNEL_NAME, post_id)
 
 
 @dp.callback_query(F.data.casefold().startswith(f'post_action:{PostAction.REJECT}'), PostPageForm.page)
-async def post_delete_cb(query: CallbackQuery, state: FSMContext):
+async def post_reject_cb(query: CallbackQuery, state: FSMContext):
     data = try_parse_query_data(query.data)
     post_id = data.get('post')
     post = await sync_to_async(Post.objects.filter)(id=post_id)
@@ -1139,6 +1173,7 @@ async def post_delete_cb(query: CallbackQuery, state: FSMContext):
     )
 
 
+# TODO: Move ADMIN_ID_LIST to django models.
 @dp.message(Command('pending'), F.from_user.id.in_(ADMIN_ID_LIST))
 async def pending_posts(message: Message, state: FSMContext) -> None:
     await state.clear()
@@ -1166,6 +1201,7 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
         return
     post_id = data.get('post_review')
     photo_num = int(data.get('photo_num', 0))
+    display_mode = data.get('display_mode', PostDisplayMode.MEDIA.value)
     if not post_id or not post_id.isdigit():
         return await query.answer(f'{_("Invalid post id")} {post_id}')
     await query.answer(_('Post review'))
@@ -1175,7 +1211,7 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
     post = await sync_to_async(Post.objects.get)(id=post_id)
     user = await sync_to_async(UserModel.objects.get)(id=post.user_id)
     ctg = await sync_to_async(Category.objects.get)(id=post.category_id)
-    queryset = await sync_to_async(PostImage.objects.filter)(post_id=post_id)
+    queryset = await sync_to_async(PostMedia.objects.filter)(post_id=post_id)
     photo_count = await sync_to_async(queryset.count)()
     photo = None
     if photo_count > photo_num:
@@ -1190,12 +1226,23 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
         post_controls.append(InlineKeyboardButton(
             text=_('Reject'), callback_data=f'post_action:{PostAction.REJECT}:post:{post_id}')
         )
+    if display_mode == PostDisplayMode.MEDIA.value and post.location:
+        post_controls.append(InlineKeyboardButton(
+            text=f'{_("Show location")}',
+            callback_data=f'post_review:{post_id}:display_mode:{PostDisplayMode.LOCATION.value}')
+        )
+    elif display_mode == PostDisplayMode.LOCATION.value:
+        post_controls.append(InlineKeyboardButton(
+            text=f'{_("Show media")}',
+            callback_data=f'post_review:{post_id}:display_mode:{PostDisplayMode.MEDIA.value}')
+        )
     if photo_count > 1:
         num = (photo_num + 1) % photo_count
         post_controls.append(InlineKeyboardButton(
-            text=f'{_("Next photo")} >', callback_data=f'post_review:{post_id}:photo_num:{num}')
+            text=f'{_("Next media")} >', callback_data=f'post_review:{post_id}:photo_num:{num}')
         )
-    post_inline_builder.row(*post_controls)
+    post_inline_builder.add(*post_controls)
+    post_inline_builder.adjust(2)
     post_inline_builder.row(InlineKeyboardButton(
         text=f'< {_("Back to list")}', callback_data=f'pending:{page}')
     )
@@ -1207,12 +1254,6 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
     )
     if post.license_plate:
         txt += Text(Bold(_('License plate')), ': ', post.license_plate, '\n')
-    if post.location:
-        txt += Text(
-            Bold(_('Location')), ':\n',
-            f'  {_("Longitude")}: ', post.location.x, '\n',
-            f'  {_("Latitude")}; ', post.location.y, '\n'
-        )
     if post.address:
         txt += Text(Bold(_('Address')), ': ', post.address, '\n')
     txt += Text(
@@ -1220,15 +1261,28 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
     )
     await bot.delete_message(query.from_user.id, query.message.message_id)
     # TODO: check if Telegram has the file for "file_id"
-    if photo:
-        media = photo.file_id if photo.file_id else FSInputFile(photo.file.path)
-        msg = await bot.send_photo(
-            query.from_user.id, media, caption=txt.as_html(),
-            reply_markup=post_inline_builder.as_markup()
-        )
+    if display_mode == PostDisplayMode.MEDIA.value and photo:
+        media = photo.file_id or FSInputFile(photo.file.path)
+        if photo.file_type == PostMediaType.IMAGE:
+            msg = await bot.send_photo(
+                query.from_user.id, media, caption=txt.as_html(),
+                reply_markup=post_inline_builder.as_markup()
+            )
+        elif photo.file_type == PostMediaType.VIDEO:
+            msg = await bot.send_video(
+                query.from_user.id, media, caption=txt.as_html(),
+                reply_markup=post_inline_builder.as_markup()
+            )
         if not photo.file_id:
             photo.file_id = msg.photo[-1].file_id
             await sync_to_async(photo.save)()
+    elif display_mode == PostDisplayMode.LOCATION.value and post.location:
+        lon = post.location.x
+        lat = post.location.y
+        await bot.send_location(
+            query.from_user.id, lat, lon,
+            reply_markup=post_inline_builder.as_markup()
+        )
     else:
         await bot.send_message(
             query.from_user.id, txt.as_html(),
@@ -1272,6 +1326,68 @@ async def posts_page_cb(query: CallbackQuery, state: FSMContext):
         query.from_user.id, _('Pending posts'),
         reply_markup=post_inline_builder.as_markup()
     )
+
+
+async def _bot_send_post(chat_id: int | str, post_id: int | str):
+    post = await sync_to_async(Post.objects.get)(id=post_id)
+    images = await sync_to_async(PostMedia.objects.filter)(post_id=post_id)
+    ctg = await sync_to_async(Category.objects.get)(id=post.category_id)
+    txt = Text(
+        Bold(_('Category')), ': ', ctg.name, '\n',
+        Bold(_('Creation date')), ': ', post.created_at.strftime("%d-%m-%Y %H:%M"), '\n',
+    )
+    if post.license_plate:
+        txt += Text(Bold(_('License plate')), ': ', post.license_plate, '\n')
+    if post.address:
+        txt += Text(Bold(_('Address')), ': ', post.address, '\n')
+    txt += Text(
+        Bold(_('Description')), ': ', post.description
+    )
+    media = []
+    async for obj in images:
+        if obj.file_type == PostMediaType.IMAGE:
+            m = InputMediaPhoto(media=obj.file_id if obj.file_id else open(obj.file.path, 'rb'))
+        elif obj.file_type == PostMediaType.VIDEO:
+            m = InputMediaVideo(media=obj.file_id if obj.file_id else open(obj.file.path, 'rb'))
+        media.append(m)
+    if media:
+        media[0].caption = txt.as_html()
+        msgs = await bot.send_media_group(chat_id, media)
+    else:
+        # Should never be called
+        msgs = await bot.send_message(chat_id, txt.as_html())
+    if post.location:
+        lon = post.location.x
+        lat = post.location.y
+        await bot.send_location(chat_id, lat, lon, reply_to_message_id=msgs[0].message_id)
+
+
+async def create_post(username: str, data: dict):
+    photos = data.pop('photo')
+    location = data.pop('location', None)
+    user, created = await sync_to_async(UserModel.objects.get_or_create)(username=username)
+    if location:
+        data['location'] = Point(x=location.longitude, y=location.latitude)
+    post = await sync_to_async(Post.objects.create)(user=user, **data)
+    for photo in photos:
+        fp = io.BytesIO()
+        await bot.download(photo.file_id, fp)
+        file_type = PostMediaType.VIDEO if getattr(photo, 'mime_type', '').startswith('video') else PostMediaType.IMAGE
+        if file_type == PostMediaType.IMAGE:
+            img = Image.open(fp)
+            img.save(fp, format='jpeg', quality=90, optimize=True)
+        await sync_to_async(PostMedia.objects.create)(
+            post=post, file=File(fp, photo.file_unique_id), file_id=photo.file_id, file_type=file_type
+        )
+
+
+def bot_send_post(chat_id: int | str, post_id: int | str):
+    return loop.run_until_complete(_bot_send_post(chat_id, post_id))
+
+
+def bot_delete_message(chat_id: int | str, message_id: int | str):
+    """Message can be deleted only if it was sent less than 48 hours ago."""
+    return loop.run_until_complete(bot.delete_message(chat_id, message_id))
 
 
 async def main() -> None:

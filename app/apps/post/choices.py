@@ -6,3 +6,8 @@ class PostStatus(models.IntegerChoices):
     PENDING = 1, _('Pending')
     REJECTED = 2, _('Rejected')
     APPROVED = 3, _('Approved')
+
+
+class PostMediaType(models.TextChoices):
+    IMAGE = 'img', _('Image')
+    VIDEO = 'vid', _('Video')
