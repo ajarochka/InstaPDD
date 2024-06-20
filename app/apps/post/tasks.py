@@ -25,7 +25,7 @@ def on_post_approve(post_id: int):
     post.save(update_fields='bot_message_id')
 
 
-@app.tasl(name='on_post_reject')
+@app.task(name='on_post_reject')
 def on_post_reject(post_id: int):
     post = Post.objects.get(id=post_id)
     for msg_id in post.bot_message_id.split(','):

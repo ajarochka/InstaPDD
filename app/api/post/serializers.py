@@ -27,7 +27,8 @@ class PostSerializer(serializers.ModelSerializer):
 
     def get_media(self, obj):
         request = self.context.get('request')
-        return [request.build_absolute_uri(m.file.url) for m in obj.media.all()]
+        return [{'url': request.build_absolute_uri(m.file.url), 'file_type': m.file_type}
+                for m in obj.media.all()]
 
     def get_comments_count(self, obj):
         return obj.comments.count()
