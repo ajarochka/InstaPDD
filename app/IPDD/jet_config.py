@@ -11,9 +11,19 @@ menu_items = [
         {'name': 'auth.group', 'label': _('Groups'), 'permissions': ['auth.view_group'], },
         {'name': 'auth.permission', 'label': _('Permissions'), 'permissions': ['auth.view_permission', ], },
     ]},
-    # {'label': _('Settings'), 'items': [
-    #     {'name': 'constance.config', 'label': _('Config'), 'permissions': ['constance.view_config', ], },
-    # ]}
+    {'label': _('Settings'), 'items': [
+        {'name': 'constance.config', 'label': _('Config'), 'permissions': ['constance.view_config', ], },
+    ]},
+    {'label': _('Periodic Tasks'), 'permissions': ['django_celery_beat.view_periodictask', ], 'items': [
+        {'name': 'django_celery_beat.crontabschedule', 'label': _('Crontabs'),
+         'permissions': ['django_celery_beat.view_crontabschedule', ], },
+        {'name': 'django_celery_beat.periodictask', 'label': _('Periodic tasks'),
+         'permissions': ['django_celery_beat.view_periodictask', ], },
+    ]},
+    {'label': _('API docs'), 'items': [
+        {'label': _('Swagger'), 'url': '/swagger/', 'url_blank': True},
+        {'label': _('Redoc'), 'url': '/redoc/', 'url_blank': True},
+    ]}
 ]
 
 themes = [

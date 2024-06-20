@@ -193,11 +193,6 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 20,
 }
 
-CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
-CONSTANCE_CONFIG = {
-    'TOKEN_TTL': (60 * 60 * 24, _('API authentication token lifetime.')),
-}
-
 # Redis configuration
 CACHE_TTL = 600  # Seconds
 REDIS_HOST = os.environ.get('REDIS_HOST', '127.0.0.1')
@@ -250,3 +245,5 @@ LEAFLET_CONFIG = {
         ),
     ],
 }
+
+from .constance_config import *

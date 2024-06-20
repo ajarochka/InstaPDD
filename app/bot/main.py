@@ -773,7 +773,6 @@ async def search_license_plate_post_info_cb(query: CallbackQuery, state: FSMCont
         Bold(_('Description')), ': ', post.description
     )
     await bot.delete_message(query.from_user.id, query.message.message_id)
-    # TODO: check if Telegram has the file for "file_id"
     if display_mode == PostDisplayMode.MEDIA.value and photo:
         media = photo.file_id or FSInputFile(photo.file.path)
         if photo.file_type == PostMediaType.IMAGE:
@@ -1260,7 +1259,6 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
         Bold(_('Description')), ': ', post.description
     )
     await bot.delete_message(query.from_user.id, query.message.message_id)
-    # TODO: check if Telegram has the file for "file_id"
     if display_mode == PostDisplayMode.MEDIA.value and photo:
         media = photo.file_id or FSInputFile(photo.file.path)
         if photo.file_type == PostMediaType.IMAGE:
@@ -1363,6 +1361,8 @@ async def _bot_send_post(chat_id: int | str, post_id: int | str):
 
 
 async def create_post(username: str, data: dict):
+    # Local import, not good.
+    from apps.post.tasks import process_media
     photos = data.pop('photo')
     location = data.pop('location', None)
     user, created = await sync_to_async(UserModel.objects.get_or_create)(username=username)
@@ -1370,15 +1370,8 @@ async def create_post(username: str, data: dict):
         data['location'] = Point(x=location.longitude, y=location.latitude)
     post = await sync_to_async(Post.objects.create)(user=user, **data)
     for photo in photos:
-        fp = io.BytesIO()
-        await bot.download(photo.file_id, fp)
         file_type = PostMediaType.VIDEO if getattr(photo, 'mime_type', '').startswith('video') else PostMediaType.IMAGE
-        if file_type == PostMediaType.IMAGE:
-            img = Image.open(fp)
-            img.save(fp, format='jpeg', quality=90, optimize=True)
-        await sync_to_async(PostMedia.objects.create)(
-            post=post, file=File(fp, photo.file_unique_id), file_id=photo.file_id, file_type=file_type
-        )
+        process_media.delay(post.id, photo.file_id, photo.file_unique_id, file_type)
 
 
 def bot_send_post(chat_id: int | str, post_id: int | str):
