@@ -13,4 +13,4 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 app.autodiscover_tasks(lambda: [n.name for n in apps.get_app_configs()])
 # app.autodiscover_tasks()
 
-# app.conf.task_default_queue = 'ipdd'
+# app.conf.task_default_queue = 'ipdd'/opt/ipdd/venv/bin/celery --app=IPDD worker

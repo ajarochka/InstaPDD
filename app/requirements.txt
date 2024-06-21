@@ -12,6 +12,7 @@ django-leaflet==0.30.0
 django-modeltranslation==0.19.3
 djangorestframework==3.15.1
 drf-yasg==1.21.7
+ffmpeg-python==0.2.0
 gevent==24.2.1
 pillow==10.3.0
 psycopg2==2.9.9
