@@ -479,6 +479,7 @@ async def new_post_step_six(message: Message, state: FSMContext):
 @dp.message(PostCreateForm.description)
 async def new_post_step_seven(message: Message, state: FSMContext):
     global last_notification_time
+    await message.answer(_('Your post is being processed'), reply_markup=ReplyKeyboardRemove())
     await state.update_data(description=message.text)
     data = await state.get_data()
     await create_post(message.from_user.username, data)
@@ -1376,33 +1377,33 @@ async def create_post(username: str, data: dict):
         # process_media.delay(post.id, photo.file_id, photo.file_unique_id, file_type)
         fp = io.BytesIO()
         await bot.download(photo.file_id, fp)
-        if file_type == PostMediaType.IMAGE:
-            img = Image.open(fp)
-            width, height = img.size
-            if width > 1920:
-                height = int(1920 * height / width)
-                width = 1920
-            if height > 1080:
-                width = int(1080 * width / height)
-                height = 1080
-            img = img.resize((width, height))
-            img.save(fp, format='jpeg', quality=80, optimize=True)
-        elif file_type == PostMediaType.VIDEO:
-            # TODO: Scale video down if too big resolution.
-            with tempfile.NamedTemporaryFile() as tmp_file:
-                data = ffmpeg.probe(tmp_file)
-                for stream in data.get('streams', []):
-                    if stream.get('codec_type') != 'video':
-                        continue
-                    duration = stream.get('duration')
-                    if duration > config.MAX_VIDEO_DURATION:
-                        input = ffmpeg.input(tmp_file)
-                        output_file_name = os.path.join(tempfile.gettempdir(), photo.file_id + '_output')
-                        output = ffmpeg.output(input.trim(0, config.MAX_VIDEO_DURATION), output_file_name)
-                        output.run()
-                        with open(output_file_name, 'rb') as of:
-                            fp.write(of.read())
-                        os.remove(output_file_name)
+        # if file_type == PostMediaType.IMAGE:
+        #     img = Image.open(fp)
+        #     width, height = img.size
+        #     if width > 1920:
+        #         height = int(1920 * height / width)
+        #         width = 1920
+        #     if height > 1080:
+        #         width = int(1080 * width / height)
+        #         height = 1080
+        #     img = img.resize((width, height))
+        #     img.save(fp, format='jpeg', quality=80, optimize=True)
+        # elif file_type == PostMediaType.VIDEO:
+        #     # TODO: Scale video down if too big resolution.
+        #     with tempfile.NamedTemporaryFile() as tmp_file:
+        #         data = ffmpeg.probe(tmp_file)
+        #         for stream in data.get('streams', []):
+        #             if stream.get('codec_type') != 'video':
+        #                 continue
+        #             duration = stream.get('duration')
+        #             if duration > config.MAX_VIDEO_DURATION:
+        #                 input = ffmpeg.input(tmp_file)
+        #                 output_file_name = os.path.join(tempfile.gettempdir(), photo.file_id + '_output')
+        #                 output = ffmpeg.output(input.trim(0, config.MAX_VIDEO_DURATION), output_file_name)
+        #                 output.run()
+        #                 with open(output_file_name, 'rb') as of:
+        #                     fp.write(of.read())
+        #                 os.remove(output_file_name)
         await sync_to_async(PostMedia.objects.create)(
             post_id=post.id, file=File(fp, photo.file_unique_id), file_id=photo.file_id, file_type=file_type
         )
