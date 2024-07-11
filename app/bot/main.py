@@ -40,12 +40,8 @@ from django.utils import translation
 from aiogram.enums import ParseMode
 from django.core.files import File
 from django.db.models import Count
-from constance import config
-from enum import StrEnum
-from PIL import Image
-import tempfile
+from enum import Enum
 import asyncio
-import ffmpeg
 from aiogram.types import (
     InlineKeyboardButton,
     ReplyKeyboardRemove,
@@ -109,14 +105,14 @@ UPDATE_FIELDS_LIST = (
 last_notification_time = None
 
 
-class PostAction(StrEnum):
+class PostAction(str, Enum):
     UPDATE = 'update'
     DELETE = 'delete'
     APPROVE = 'approve'
     REJECT = 'reject'
 
 
-class PostDisplayMode(StrEnum):
+class PostDisplayMode(str, Enum):
     MEDIA = 'media'
     LOCATION = 'location'
 
