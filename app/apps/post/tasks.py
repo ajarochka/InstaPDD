@@ -52,13 +52,14 @@ def process_media(post_id: int | str, file_id: str, file_uid: str, mime_type: st
     elif mime_type == PostMediaType.VIDEO:
         # TODO: Scale video down if too big resolution.
         with tempfile.NamedTemporaryFile() as tmp_file:
-            data = ffmpeg.probe(tmp_file)
+            tmp_file.write(fp.read())
+            data = ffmpeg.probe(tmp_file.name)
             for stream in data.get('streams', []):
                 if stream.get('codec_type') != 'video':
                     continue
                 duration = stream.get('duration')
-                if duration > config.MAX_VIDEO_DURATION:
-                    input = ffmpeg.input(tmp_file)
+                if float(duration) > config.MAX_VIDEO_DURATION:
+                    input = ffmpeg.input(tmp_file.name)
                     output_file_name = os.path.join(tempfile.gettempdir(), file_id + '_output')
                     output = ffmpeg.output(input.trim(0, config.MAX_VIDEO_DURATION), output_file_name)
                     output.run()

@@ -1371,38 +1371,6 @@ async def create_post(username: str, data: dict):
     for photo in photos:
         file_type = PostMediaType.VIDEO if getattr(photo, 'mime_type', '').startswith('video') else PostMediaType.IMAGE
         process_media.delay(post.id, photo.file_id, photo.file_unique_id, file_type)
-        # fp = io.BytesIO()
-        # await bot.download(photo.file_id, fp)
-        # if file_type == PostMediaType.IMAGE:
-        #     img = Image.open(fp)
-        #     width, height = img.size
-        #     if width > 1920:
-        #         height = int(1920 * height / width)
-        #         width = 1920
-        #     if height > 1080:
-        #         width = int(1080 * width / height)
-        #         height = 1080
-        #     img = img.resize((width, height))
-        #     img.save(fp, format='jpeg', quality=80, optimize=True)
-        # elif file_type == PostMediaType.VIDEO:
-        #     # TODO: Scale video down if too big resolution.
-        #     with tempfile.NamedTemporaryFile() as tmp_file:
-        #         data = ffmpeg.probe(tmp_file)
-        #         for stream in data.get('streams', []):
-        #             if stream.get('codec_type') != 'video':
-        #                 continue
-        #             duration = stream.get('duration')
-        #             if duration > config.MAX_VIDEO_DURATION:
-        #                 input = ffmpeg.input(tmp_file)
-        #                 output_file_name = os.path.join(tempfile.gettempdir(), photo.file_id + '_output')
-        #                 output = ffmpeg.output(input.trim(0, config.MAX_VIDEO_DURATION), output_file_name)
-        #                 output.run()
-        #                 with open(output_file_name, 'rb') as of:
-        #                     fp.write(of.read())
-        #                 os.remove(output_file_name)
-        # await sync_to_async(PostMedia.objects.create)(
-        #     post_id=post.id, file=File(fp, photo.file_unique_id), file_id=photo.file_id, file_type=file_type
-        # )
 
 
 def bot_send_post(chat_id: int | str, post_id: int | str):
