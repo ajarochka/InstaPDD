@@ -37,7 +37,7 @@ def on_post_reject(post_id: int):
 @app.task(name='process_media')
 def process_media(post_id: int | str, file_id: str, file_uid: str, mime_type: str):
     fp = io.BytesIO()
-    async_to_sync(bot.download(file_id, fp))()
+    async_to_sync(bot.download)(file_id, fp)
     if mime_type == PostMediaType.IMAGE:
         img = Image.open(fp)
         width, height = img.size
