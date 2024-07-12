@@ -42,10 +42,10 @@ def process_media(post_id: int | str, file_id: str, file_uid: str, mime_type: st
         img = Image.open(fp)
         width, height = img.size
         if width > 1920:
-            height = 1920 * round(height / width, 2)
+            height = int(1920 * height / width)
             width = 1920
         if height > 1080:
-            width = 1080 * round(width / height, 2)
+            width = int(1080 * width / height)
             height = 1080
         img = img.resize((width, height))
         img.save(fp, format='jpeg', quality=80, optimize=True)
