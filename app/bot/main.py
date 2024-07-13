@@ -578,11 +578,11 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
     post_controls = []
     if post.status < PostStatus.REJECTED:
         post_controls.append(InlineKeyboardButton(
-            text=_('Update post'), callback_data=f'post_action:{PostAction.UPDATE}:post:{post_id}')
+            text=_('Update post'), callback_data=f'post_action:{PostAction.UPDATE.value}:post:{post_id}')
         )
     if post.status < PostStatus.APPROVED:
         post_controls.append(InlineKeyboardButton(
-            text=_('Delete post'), callback_data=f'post_action:{PostAction.DELETE}:post:{post_id}')
+            text=_('Delete post'), callback_data=f'post_action:{PostAction.DELETE.value}:post:{post_id}')
         )
     if display_mode == PostDisplayMode.MEDIA.value and post.location:
         post_controls.append(InlineKeyboardButton(
@@ -630,7 +630,8 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
                 reply_markup=post_inline_builder.as_markup()
             )
         if not photo.file_id:
-            photo.file_id = msg.photo[-1].file_id
+            p = msg.photo[-1] if isinstance(msg.photo, (list, tuple)) else msg.photo
+            photo.file_id = p.file_id
             await sync_to_async(photo.save)()
     elif display_mode == PostDisplayMode.LOCATION.value and post.location:
         lon = post.location.x
@@ -785,7 +786,8 @@ async def search_license_plate_post_info_cb(query: CallbackQuery, state: FSMCont
                 reply_markup=post_inline_builder.as_markup()
             )
         if not photo.file_id:
-            photo.file_id = msg.photo[-1].file_id
+            p = msg.photo[-1] if isinstance(msg.photo, (list, tuple)) else msg.photo
+            photo.file_id = p.file_id
             await sync_to_async(photo.save)()
     elif display_mode == PostDisplayMode.LOCATION.value and post.location:
         lon = post.location.x
@@ -801,7 +803,7 @@ async def search_license_plate_post_info_cb(query: CallbackQuery, state: FSMCont
         )
 
 
-@dp.callback_query(F.data.casefold().startswith(f'post_action:{PostAction.UPDATE}'), PostPageForm.page)
+@dp.callback_query(F.data.casefold().startswith(f'post_action:{PostAction.UPDATE.value}'), PostPageForm.page)
 async def post_update_cb(query: CallbackQuery, state: FSMContext):
     data = try_parse_query_data(query.data)
     if not data:
@@ -919,7 +921,8 @@ async def post_update_photo_cb(query: CallbackQuery, state: FSMContext):
                 query.from_user.id, media, reply_markup=photo_inline_builder.as_markup()
             )
         if not photo.file_id:
-            photo.file_id = msg.photo[-1].file_id
+            p = msg.photo[-1] if isinstance(msg.photo, (list, tuple)) else msg.photo
+            photo.file_id = p.file_id
             await sync_to_async(photo.save)()
     else:
         await bot.send_message(
@@ -978,10 +981,11 @@ async def photo_update_add_complete(message: Message, state: FSMContext, album: 
     for photo in photos:
         # Each photo has 4 resolutions, the last one has the best quality.
         fp = io.BytesIO()
-        await bot.download(photo[-1].file_id, fp)
+        p = photo[-1] if isinstance(photo, (list, tuple)) else photo
+        await bot.download(p.file_id, fp)
         file_type = PostMediaType.VIDEO if getattr(photo, 'mime_type', '').startswith('video') else PostMediaType.IMAGE
         await sync_to_async(PostMedia.objects.create)(
-            post_id=post_id, file=File(fp, photo[-1].file_unique_id), file_id=photo[-1].file_id, file_type=file_type
+            post_id=post_id, file=File(fp, p.file_unique_id), file_id=p.file_id, file_type=file_type
         )
     await state.clear()
     post_inline_builder = InlineKeyboardBuilder()
@@ -1109,7 +1113,7 @@ async def post_update_description_complete(message: Message, state: FSMContext):
     await bot.send_message(message.from_user.id, _('Description updated'), reply_markup=post_inline_builder.as_markup())
 
 
-@dp.callback_query(F.data.casefold().startswith(f'post_action:{PostAction.DELETE}'), PostPageForm.page)
+@dp.callback_query(F.data.casefold().startswith(f'post_action:{PostAction.DELETE.value}'), PostPageForm.page)
 async def post_delete_cb(query: CallbackQuery, state: FSMContext):
     data = try_parse_query_data(query.data)
     post_id = data.get('post')
@@ -1129,7 +1133,7 @@ async def post_delete_cb(query: CallbackQuery, state: FSMContext):
     )
 
 
-@dp.callback_query(F.data.casefold().startswith(f'post_action:{PostAction.APPROVE}'), PostPageForm.page)
+@dp.callback_query(F.data.casefold().startswith(f'post_action:{PostAction.APPROVE.value}'), PostPageForm.page)
 async def post_approve_cb(query: CallbackQuery, state: FSMContext):
     data = try_parse_query_data(query.data)
     post_id = data.get('post')
@@ -1151,7 +1155,7 @@ async def post_approve_cb(query: CallbackQuery, state: FSMContext):
     await _bot_send_post(CHANNEL_NAME, post_id)
 
 
-@dp.callback_query(F.data.casefold().startswith(f'post_action:{PostAction.REJECT}'), PostPageForm.page)
+@dp.callback_query(F.data.casefold().startswith(f'post_action:{PostAction.REJECT.value}'), PostPageForm.page)
 async def post_reject_cb(query: CallbackQuery, state: FSMContext):
     data = try_parse_query_data(query.data)
     post_id = data.get('post')
@@ -1193,7 +1197,7 @@ async def pending_posts(message: Message, state: FSMContext) -> None:
 
 
 @dp.callback_query(F.data.casefold().startswith('post_review:'), PostPageForm.page)
-async def post_info_cb(query: CallbackQuery, state: FSMContext):
+async def post_review_cb(query: CallbackQuery, state: FSMContext):
     data = try_parse_query_data(query.data)
     if not data:
         return
@@ -1218,11 +1222,11 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
     post_controls = []
     if post.status < PostStatus.REJECTED:
         post_controls.append(InlineKeyboardButton(
-            text=_('Approve'), callback_data=f'post_action:{PostAction.APPROVE}:post:{post_id}')
+            text=_('Approve'), callback_data=f'post_action:{PostAction.APPROVE.value}:post:{post_id}')
         )
     if post.status < PostStatus.APPROVED:
         post_controls.append(InlineKeyboardButton(
-            text=_('Reject'), callback_data=f'post_action:{PostAction.REJECT}:post:{post_id}')
+            text=_('Reject'), callback_data=f'post_action:{PostAction.REJECT.value}:post:{post_id}')
         )
     if display_mode == PostDisplayMode.MEDIA.value and post.location:
         post_controls.append(InlineKeyboardButton(
@@ -1271,7 +1275,8 @@ async def post_info_cb(query: CallbackQuery, state: FSMContext):
                 reply_markup=post_inline_builder.as_markup()
             )
         if not photo.file_id:
-            photo.file_id = msg.photo[-1].file_id
+            p = msg.photo[-1] if isinstance(msg.photo, (list, tuple)) else msg.photo
+            photo.file_id = p.file_id
             await sync_to_async(photo.save)()
     elif display_mode == PostDisplayMode.LOCATION.value and post.location:
         lon = post.location.x
