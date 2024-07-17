@@ -1186,7 +1186,7 @@ async def post_feedback_cb(query: CallbackQuery, state: FSMContext):
     state_data = await state.get_data()
     post_id = data.get('post')
     page = state_data.get("page", 1)
-    post = await sync_to_async(Post.objects.filter)(id=post_id)
+    post = await sync_to_async(Post.objects.get)(id=post_id)
     user = await sync_to_async(UserModel.objects.get)(id=post.user_id)
     await query.answer(_('Post feedback'))
     await state.set_state(PostFeedbackForm.message)
