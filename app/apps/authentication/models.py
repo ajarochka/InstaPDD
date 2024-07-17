@@ -10,6 +10,7 @@ class CustomToken(Token):
 
 class Profile(AbstractUser):
     phone = models.CharField(_('Phone'), max_length=32, blank=True, null=True)
+    tg_id = models.CharField(_('Telegram chat id'), max_length=32, blank=True, null=True)
 
 
 class BotAdmin(models.Model):

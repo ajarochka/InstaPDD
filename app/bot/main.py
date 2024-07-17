@@ -110,6 +110,7 @@ class PostAction(str, Enum):
     DELETE = 'delete'
     APPROVE = 'approve'
     REJECT = 'reject'
+    FEEDBACK = 'feedback'
 
 
 class PostDisplayMode(str, Enum):
@@ -138,6 +139,10 @@ class PostUpdateForm(StatesGroup):
 
 class PostPageForm(StatesGroup):
     page = State()
+
+
+class PostFeedbackForm(StatesGroup):
+    message = State()
 
 
 class PostSearchForm(StatesGroup):
@@ -478,7 +483,7 @@ async def new_post_step_seven(message: Message, state: FSMContext):
     await message.answer(_('Your post is being processed'), reply_markup=ReplyKeyboardRemove())
     await state.update_data(description=message.text)
     data = await state.get_data()
-    await create_post(message.from_user.username, data)
+    await create_post(message, data)
     await state.clear()
     msg = _('Thanks for your message, the request will be reviewed and we will return to you! '
             'You can see your post in @citizen_kg channel after approval.')
@@ -1175,6 +1180,45 @@ async def post_reject_cb(query: CallbackQuery, state: FSMContext):
     )
 
 
+@dp.callback_query(F.data.casefold().startswith(f'post_action:{PostAction.FEEDBACK.value}'), PostPageForm.page)
+async def post_feedback_cb(query: CallbackQuery, state: FSMContext):
+    data = try_parse_query_data(query.data)
+    state_data = await state.get_data()
+    post_id = data.get('post')
+    page = state_data.get("page", 1)
+    post = await sync_to_async(Post.objects.filter)(id=post_id)
+    user = await sync_to_async(UserModel.objects.get)(id=post.user_id)
+    await query.answer(_('Post feedback'))
+    await state.set_state(PostFeedbackForm.message)
+    await state.update_data(user_id=user.id)
+    await state.update_data(page=page)
+    await bot.delete_message(query.from_user.id, query.message.message_id)
+    await bot.send_message(
+        query.from_user.id, _('Please write your feedback for user') + ' ' + user.username,
+    )
+
+
+@dp.message(PostFeedbackForm.message)
+async def post_feedback_handler(message: Message, state: FSMContext) -> None:
+    state_data = await state.get_data()
+    user_id = state_data.get('user_id')
+    page = state_data.get("page", 1)
+    user = await sync_to_async(UserModel.objects.get)(id=user_id)
+    if not user_id or not user.tg_id:
+        await message.reply(_(f'User with id {user_id} not found!'))
+        return
+    await bot.send_message(user.tg_id, message.text)
+    await state.set_state(PostPageForm.page)
+    post_inline_builder = InlineKeyboardBuilder()
+    post_inline_builder.row(InlineKeyboardButton(
+        text=f'< {_("Back to list")}', callback_data=f'pending:{page}')
+    )
+    await bot.send_message(
+        message.from_user.id, _('Feedback sent'),
+        reply_markup=post_inline_builder.as_markup()
+    )
+
+
 # TODO: Move ADMIN_ID_LIST to django models.
 @dp.message(Command('pending'), F.from_user.id.in_(ADMIN_ID_LIST))
 async def pending_posts(message: Message, state: FSMContext) -> None:
@@ -1224,9 +1268,13 @@ async def post_review_cb(query: CallbackQuery, state: FSMContext):
         post_controls.append(InlineKeyboardButton(
             text=_('Approve'), callback_data=f'post_action:{PostAction.APPROVE.value}:post:{post_id}')
         )
-    if post.status < PostStatus.APPROVED:
+    if post.status < PostStatus.REJECTED:
         post_controls.append(InlineKeyboardButton(
             text=_('Reject'), callback_data=f'post_action:{PostAction.REJECT.value}:post:{post_id}')
+        )
+    if post.status < PostStatus.REJECTED:
+        post_controls.append(InlineKeyboardButton(
+            text=_('Feedback'), callback_data=f'post_action:{PostAction.FEEDBACK.value}:post:{post_id}')
         )
     if display_mode == PostDisplayMode.MEDIA.value and post.location:
         post_controls.append(InlineKeyboardButton(
@@ -1364,12 +1412,18 @@ async def _bot_send_post(chat_id: int | str, post_id: int | str):
         await bot.send_location(chat_id, lat, lon, reply_to_message_id=msgs[0].message_id)
 
 
-async def create_post(username: str, data: dict):
+async def create_post(message: Message, data: dict):
     # Local import, not good.
     from apps.post.tasks import process_media
     photos = data.pop('photo')
     location = data.pop('location', None)
-    user, created = await sync_to_async(UserModel.objects.get_or_create)(username=username)
+    defaults = {
+        'username': message.from_user.username,
+        'tg_id': message.from_user.id,
+    }
+    user, created = await sync_to_async(UserModel.objects.get_or_create)(
+        username=message.from_user.username, defaults=defaults
+    )
     if location:
         data['location'] = Point(x=location.longitude, y=location.latitude)
     post = await sync_to_async(Post.objects.create)(user=user, **data)
