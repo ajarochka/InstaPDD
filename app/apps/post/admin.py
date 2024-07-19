@@ -63,12 +63,13 @@ class PostAdmin(LeafletGeoAdmin):
     def save_form(self, request, form, change):
         # Local import to avoid circular imports between bot and django.
         from .tasks import on_post_reject, on_post_approve
-        form.save(commit=False)
+        res = form.save(commit=False)
         obj = form.instance
         if obj.status != PostStatus.APPROVED and obj.bot_message_id:
             on_post_reject.delay(obj.id)
         if obj.status == PostStatus.APPROVED and not obj.bot_message_id:
             on_post_approve.delay(obj.id)
+        return res
 
 
 admin.site.register(Post, PostAdmin)

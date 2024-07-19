@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-18 22:32+0600\n"
+"POT-Creation-Date: 2024-07-17 23:03+0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,6 +17,16 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+
+#: IPDD/constance_config.py:5
+#, fuzzy
+#| msgid "API authentication token lifetime."
+msgid "API authentication token lifetime in seconds."
+msgstr "API аныктыгын текшерүү токенинин иш мөөнөтү."
+
+#: IPDD/constance_config.py:6
+msgid "Post video max duration in seconds"
+msgstr ""
 
 #: IPDD/jet_config.py:5
 msgid "Posts"
@@ -42,9 +52,41 @@ msgstr "Колдонуучулар"
 msgid "Groups"
 msgstr "Топтор"
 
-#: IPDD/jet_config.py:12
+#: IPDD/jet_config.py:12 apps/authentication/admin.py:17
 msgid "Permissions"
 msgstr "Уруксаттар"
+
+#: IPDD/jet_config.py:14
+msgid "Settings"
+msgstr ""
+
+#: IPDD/jet_config.py:15
+msgid "Config"
+msgstr ""
+
+#: IPDD/jet_config.py:17
+msgid "Periodic Tasks"
+msgstr ""
+
+#: IPDD/jet_config.py:18
+msgid "Crontabs"
+msgstr ""
+
+#: IPDD/jet_config.py:20
+msgid "Periodic tasks"
+msgstr ""
+
+#: IPDD/jet_config.py:23
+msgid "API docs"
+msgstr ""
+
+#: IPDD/jet_config.py:24
+msgid "Swagger"
+msgstr ""
+
+#: IPDD/jet_config.py:25
+msgid "Redoc"
+msgstr ""
 
 #: IPDD/settings.py:169
 msgid "English"
@@ -57,10 +99,6 @@ msgstr "Орусча"
 #: IPDD/settings.py:171
 msgid "Kyrgyz"
 msgstr "Кыргызча"
-
-#: IPDD/settings.py:198
-msgid "API authentication token lifetime."
-msgstr "API аныктыгын текшерүү токенинин иш мөөнөтү."
 
 #: api/authentication/exceptions.py:8
 msgid "User is not active"
@@ -82,6 +120,14 @@ msgstr "Күнүмдүк"
 msgid "Hourly"
 msgstr "Саат сайын"
 
+#: apps/authentication/admin.py:15
+msgid "Personal info"
+msgstr ""
+
+#: apps/authentication/admin.py:28
+msgid "Important dates"
+msgstr ""
+
 #: apps/authentication/models.py:8
 msgid "Expiration date"
 msgstr ""
@@ -90,22 +136,26 @@ msgstr ""
 msgid "Phone"
 msgstr ""
 
-#: apps/authentication/models.py:16 apps/category/models.py:6
+#: apps/authentication/models.py:13
+msgid "Telegram chat id"
+msgstr ""
+
+#: apps/authentication/models.py:17 apps/category/models.py:6
 #: apps/category/models.py:13
 #: templates/dashboard/modules/customer_points_earned.html:51
 #: templates/dashboard/modules/customer_points_used.html:51
 msgid "Name"
 msgstr "аты"
 
-#: apps/authentication/models.py:17
+#: apps/authentication/models.py:18
 msgid "Telegram bot admin"
 msgstr ""
 
-#: apps/authentication/models.py:18 apps/post/models.py:20
+#: apps/authentication/models.py:19 apps/post/models.py:20
 msgid "Active"
 msgstr ""
 
-#: apps/authentication/models.py:19 apps/post/models.py:22
+#: apps/authentication/models.py:20 apps/post/models.py:22
 #: apps/post/models.py:36 apps/post/models.py:46
 msgid "Created at"
 msgstr ""
@@ -114,12 +164,12 @@ msgstr ""
 msgid "Violator"
 msgstr ""
 
-#: apps/post/admin.py:31
+#: apps/post/admin.py:30
 msgid "Preview"
 msgstr "Алдын ала көрүү"
 
-#: apps/post/admin.py:57 apps/post/models.py:14 bot/main.py:611 bot/main.py:766
-#: bot/main.py:1253
+#: apps/post/admin.py:56 apps/post/models.py:14 bot/main.py:615 bot/main.py:771
+#: bot/main.py:1303
 msgid "Status"
 msgstr "Статус"
 
@@ -143,27 +193,27 @@ msgstr ""
 msgid "Video"
 msgstr ""
 
-#: apps/post/models.py:12 apps/post/models.py:43 bot/main.py:1250
+#: apps/post/models.py:12 apps/post/models.py:43 bot/main.py:1300
 msgid "User"
 msgstr "Колдонуучу"
 
-#: apps/post/models.py:13 bot/main.py:609 bot/main.py:764 bot/main.py:1251
-#: bot/main.py:1336
+#: apps/post/models.py:13 bot/main.py:613 bot/main.py:769 bot/main.py:1301
+#: bot/main.py:1386
 msgid "Category"
 msgstr "Категория"
 
-#: apps/post/models.py:15 bot/main.py:616 bot/main.py:771 bot/main.py:1258
-#: bot/main.py:1342
+#: apps/post/models.py:15 bot/main.py:620 bot/main.py:776 bot/main.py:1308
+#: bot/main.py:1392
 msgid "Address"
 msgstr "Дареги"
 
-#: apps/post/models.py:16 bot/main.py:614 bot/main.py:769 bot/main.py:1256
-#: bot/main.py:1340
+#: apps/post/models.py:16 bot/main.py:618 bot/main.py:774 bot/main.py:1306
+#: bot/main.py:1390
 msgid "License plate"
 msgstr "Унаа номери"
 
-#: apps/post/models.py:17 bot/main.py:618 bot/main.py:773 bot/main.py:1260
-#: bot/main.py:1344
+#: apps/post/models.py:17 bot/main.py:622 bot/main.py:778 bot/main.py:1310
+#: bot/main.py:1394
 msgid "Description"
 msgstr "Сүрөттөмө"
 
@@ -199,189 +249,193 @@ msgstr ""
 msgid "Text"
 msgstr ""
 
-#: bot/main.py:233
+#: bot/main.py:236
 msgid "Create new post"
 msgstr "Жаңы пост түзүү"
 
-#: bot/main.py:234 bot/main.py:271
+#: bot/main.py:237 bot/main.py:274
 msgid "Help!"
 msgstr "Жардам!"
 
-#: bot/main.py:236
+#: bot/main.py:239
 msgid "Welcome to IPDD!"
 msgstr "IPDDге кош келиңиз!"
 
-#: bot/main.py:257
+#: bot/main.py:260
 msgid "Canceled"
 msgstr "Жокко чыгарылды"
 
-#: bot/main.py:279 bot/main.py:424 bot/main.py:444 bot/main.py:465
-#: bot/main.py:1058
+#: bot/main.py:282 bot/main.py:427 bot/main.py:447 bot/main.py:468
+#: bot/main.py:1065
 msgid "Please send the license plate"
 msgstr "Сураныч, унаа номерин жөнөтүңүз"
 
-#: bot/main.py:291
+#: bot/main.py:294
 msgid "Please choose the violator"
 msgstr "Сураныч, бузуучу категорияны тандаңыз"
 
-#: bot/main.py:298
+#: bot/main.py:301
 msgid "New post"
 msgstr "Жаңы пост"
 
-#: bot/main.py:307
+#: bot/main.py:310
 msgid "Violator selected"
 msgstr "Бузуучу тандалды"
 
-#: bot/main.py:314
+#: bot/main.py:317
 msgid "Please select category"
 msgstr "Сураныч, категория тандаңыз"
 
-#: bot/main.py:325
+#: bot/main.py:328
 msgid "category selected"
 msgstr "категория тандалды"
 
-#: bot/main.py:328 bot/main.py:336
+#: bot/main.py:331 bot/main.py:339
 msgid "Please send photo or video, max 3 allowed"
 msgstr "Сураныч, сүрөттөрдү жөнөтүңүз, 3 өйдө эмес"
 
-#: bot/main.py:340
+#: bot/main.py:343
 msgid "Yes"
 msgstr "Ооба"
 
-#: bot/main.py:341
+#: bot/main.py:344
 msgid "No"
 msgstr "Жок"
 
-#: bot/main.py:351 bot/main.py:371 bot/main.py:383 bot/main.py:388
-#: bot/main.py:406 bot/main.py:421 bot/main.py:430 bot/main.py:440
-#: bot/main.py:463
+#: bot/main.py:354 bot/main.py:374 bot/main.py:386 bot/main.py:391
+#: bot/main.py:409 bot/main.py:424 bot/main.py:433 bot/main.py:443
+#: bot/main.py:466
 msgid "Skip this step"
 msgstr "Бул кадамды өтүп кетиңиз"
 
-#: bot/main.py:353 bot/main.py:373 bot/main.py:384 bot/main.py:408
-#: bot/main.py:999 bot/main.py:1012
+#: bot/main.py:356 bot/main.py:376 bot/main.py:387 bot/main.py:411
+#: bot/main.py:1006 bot/main.py:1019
 msgid "Please send the location"
 msgstr "Сураныч жайгашкан жерин жөнөтүңүз"
 
-#: bot/main.py:357
+#: bot/main.py:360
 msgid "Finish media upload?"
 msgstr "Сүрөт жүктөө аяктады бы?"
 
-#: bot/main.py:368
+#: bot/main.py:371
 msgid "Media uploaded"
 msgstr "Сүрөт жүктөлдү"
 
-#: bot/main.py:376
+#: bot/main.py:379
 msgid "Please send more photo or video"
 msgstr "Сураныч көбүрөөк сүрөт жөнөтүңүз"
 
-#: bot/main.py:389 bot/main.py:401 bot/main.py:432 bot/main.py:1030
+#: bot/main.py:392 bot/main.py:404 bot/main.py:435 bot/main.py:1037
 msgid "Please send the address"
 msgstr "Сураныч, дарегин жөнөтүнүз"
 
-#: bot/main.py:398
+#: bot/main.py:401
 msgid "Location skipped"
 msgstr "Жайгашкан жер өткөрүлүп жиберилди"
 
-#: bot/main.py:419
+#: bot/main.py:422
 msgid "Address skipped"
 msgstr "Дарек өткөрүлүп жиберилди"
 
-#: bot/main.py:455
+#: bot/main.py:458
 msgid "License plate skipped"
 msgstr "Унаанын номери өтүп кетти"
 
-#: bot/main.py:458 bot/main.py:474 bot/main.py:1089
+#: bot/main.py:461 bot/main.py:477 bot/main.py:1096
 msgid "Please send the description"
 msgstr "Сураныч, сүрөттөмө жөнөтүңүз"
 
-#: bot/main.py:484
+#: bot/main.py:483
+msgid "Your post is being processed"
+msgstr ""
+
+#: bot/main.py:488
 msgid ""
 "Thanks for your message, the request will be reviewed and we will return to "
 "you! You can see your post in @citizen_kg channel after approval."
 msgstr "Кабарыңыз үчүн рахмат, өтүнүч каралат жана биз сизге кайрылабыз"
 
-#: bot/main.py:490
+#: bot/main.py:494
 msgid "New /pending posts for approval available."
 msgstr ""
 
-#: bot/main.py:504
+#: bot/main.py:508
 msgid "Your have no posts yet"
 msgstr "Сиздин азырынча постуңуз жок"
 
-#: bot/main.py:515 bot/main.py:552
+#: bot/main.py:519 bot/main.py:556
 msgid "Your posts"
 msgstr "Сиздин постторуңуз"
 
-#: bot/main.py:567 bot/main.py:732
+#: bot/main.py:571 bot/main.py:737
 msgid "Post details"
 msgstr "Пост чоо-жайы"
 
-#: bot/main.py:582
+#: bot/main.py:586
 msgid "Update post"
 msgstr "Постту жаңыртуу"
 
-#: bot/main.py:586
+#: bot/main.py:590
 msgid "Delete post"
 msgstr "Постту жок кылуу"
 
-#: bot/main.py:610 bot/main.py:765 bot/main.py:1252 bot/main.py:1337
+#: bot/main.py:614 bot/main.py:770 bot/main.py:1302 bot/main.py:1387
 msgid "Creation date"
 msgstr "Түзүлгөн күнү"
 
-#: bot/main.py:677 bot/main.py:716
+#: bot/main.py:682 bot/main.py:721
 msgid "Found posts"
 msgstr "Табылган посттор"
 
-#: bot/main.py:680
+#: bot/main.py:685
 msgid "No matches found"
 msgstr "Эч кандай дал келүү табылган жок"
 
-#: bot/main.py:812
+#: bot/main.py:817
 msgid "Post update"
 msgstr "Жаңыртуу"
 
-#: bot/main.py:820
+#: bot/main.py:825
 msgid "Please select what you would like to update"
 msgstr "Сураныч жаңырткыңыз келген нерсени тандаңыз"
 
-#: bot/main.py:835
+#: bot/main.py:840
 msgid "Select category"
 msgstr "Категорияны танданыз"
 
-#: bot/main.py:871
+#: bot/main.py:876
 msgid "Category updated"
 msgstr "Категория жаңыланган"
 
-#: bot/main.py:885
+#: bot/main.py:890
 #, fuzzy
 #| msgid "Update address"
 msgid "Update media"
 msgstr "Даректи жаңыртуу"
 
-#: bot/main.py:895
+#: bot/main.py:900
 msgid "Delete"
 msgstr "Жок кылуу"
 
-#: bot/main.py:900
+#: bot/main.py:905
 msgid "Add media"
 msgstr ""
 
-#: bot/main.py:928
+#: bot/main.py:934
 #, fuzzy
 #| msgid "No matches found"
 msgid "No media found"
 msgstr "Эч кандай дал келүү табылган жок"
 
-#: bot/main.py:941
+#: bot/main.py:947
 msgid "Photo delete"
 msgstr "Сүрөт өчүрүү"
 
-#: bot/main.py:947
+#: bot/main.py:953
 msgid "Photo deleted"
 msgstr "Сүрөт өчүрүлдү"
 
-#: bot/main.py:956 bot/main.py:968
+#: bot/main.py:962 bot/main.py:974
 msgid ""
 "Please send photo or video, max 3 allowed, if exceeded, will substitute "
 "existing media"
@@ -389,75 +443,100 @@ msgstr ""
 "Сураныч, сүрөттөрдү жөнөтүңүз, 3 сүрөттөн өйдө эмес уруксат берилген, эгер "
 "ашып кетсе, учурдагы сүрөттү алмаштырат"
 
-#: bot/main.py:957
+#: bot/main.py:963
 msgid "Add photo"
 msgstr "Сүрөт кошуу"
 
-#: bot/main.py:993
+#: bot/main.py:1000
 #, fuzzy
 #| msgid "Media uploaded"
 msgid "Media updated"
 msgstr "Сүрөт жүктөлдү"
 
-#: bot/main.py:1002
+#: bot/main.py:1009
 msgid "Update location"
 msgstr "Жайгашкан жерди жаңыртуу"
 
-#: bot/main.py:1024
+#: bot/main.py:1031
 msgid "Location updated"
 msgstr "Жайгашкан жер жаңырды"
 
-#: bot/main.py:1033
+#: bot/main.py:1040
 msgid "Update address"
 msgstr "Даректи жаңыртуу"
 
-#: bot/main.py:1052
+#: bot/main.py:1059
 msgid "Address updated"
 msgstr "Дарек жаңырды"
 
-#: bot/main.py:1061
+#: bot/main.py:1068
 msgid "Update license plate"
 msgstr "Унаанын номерин жаңыртуу"
 
-#: bot/main.py:1081
+#: bot/main.py:1088
 msgid "License plate updated"
 msgstr "Унаанын номери жаңырды"
 
-#: bot/main.py:1092
+#: bot/main.py:1099
 msgid "Update description"
 msgstr "Сүрөттөмөсүн жаңыртуу"
 
-#: bot/main.py:1111
+#: bot/main.py:1118
 msgid "Description updated"
 msgstr "Сүрөттөмө жаңыртылды"
 
-#: bot/main.py:1120 bot/main.py:1129
+#: bot/main.py:1127 bot/main.py:1136
 msgid "Post deleted"
 msgstr "Пост жок кылынды"
 
-#: bot/main.py:1140 bot/main.py:1149
+#: bot/main.py:1147 bot/main.py:1156
 msgid "Post approved"
 msgstr "Пост бекитилген"
 
-#: bot/main.py:1162 bot/main.py:1171
+#: bot/main.py:1169 bot/main.py:1178
 msgid "Post rejected"
 msgstr "Пост четке кагылды"
 
-#: bot/main.py:1194 bot/main.py:1326
+#: bot/main.py:1191
+#, fuzzy
+#| msgid "Post deleted"
+msgid "Post feedback"
+msgstr "Пост жок кылынды"
+
+#: bot/main.py:1197
+msgid "Please write your feedback for user"
+msgstr ""
+
+#: bot/main.py:1208
+#, python-brace-format
+msgid "User with id {user_id} not found!"
+msgstr ""
+
+#: bot/main.py:1217
+msgid "Feedback sent"
+msgstr ""
+
+#: bot/main.py:1240 bot/main.py:1376
 msgid "Pending posts"
 msgstr "Күтүүдөгү посттор"
 
-#: bot/main.py:1207
+#: bot/main.py:1253
 msgid "Post review"
 msgstr "Пост көрүп чыгуу"
 
-#: bot/main.py:1223
+#: bot/main.py:1269
 msgid "Approve"
 msgstr "Кабыл алуу"
 
-#: bot/main.py:1227
+#: bot/main.py:1273
 msgid "Reject"
 msgstr "Четке кагуу"
+
+#: bot/main.py:1277
+#, fuzzy
+#| msgid "back"
+msgid "Feedback"
+msgstr "артка"
 
 #: dashboard/dashboard_modules.py:61
 msgid "Posts activity"
