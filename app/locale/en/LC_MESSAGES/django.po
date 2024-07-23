@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-10 23:30+0600\n"
+"POT-Creation-Date: 2024-07-23 21:23+0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,6 +17,14 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: IPDD/constance_config.py:5
+msgid "API authentication token lifetime in seconds."
+msgstr ""
+
+#: IPDD/constance_config.py:6
+msgid "Post video max duration in seconds"
+msgstr ""
 
 #: IPDD/jet_config.py:5
 msgid "Posts"
@@ -42,24 +50,52 @@ msgstr ""
 msgid "Groups"
 msgstr ""
 
-#: IPDD/jet_config.py:12
+#: IPDD/jet_config.py:12 apps/authentication/admin.py:17
 msgid "Permissions"
 msgstr ""
 
-#: IPDD/settings.py:167
-msgid "English"
+#: IPDD/jet_config.py:14
+msgid "Settings"
 msgstr ""
 
-#: IPDD/settings.py:168
-msgid "Russian"
+#: IPDD/jet_config.py:15
+msgid "Config"
+msgstr ""
+
+#: IPDD/jet_config.py:17
+msgid "Periodic Tasks"
+msgstr ""
+
+#: IPDD/jet_config.py:18
+msgid "Crontabs"
+msgstr ""
+
+#: IPDD/jet_config.py:20
+msgid "Periodic tasks"
+msgstr ""
+
+#: IPDD/jet_config.py:23
+msgid "API docs"
+msgstr ""
+
+#: IPDD/jet_config.py:24
+msgid "Swagger"
+msgstr ""
+
+#: IPDD/jet_config.py:25
+msgid "Redoc"
 msgstr ""
 
 #: IPDD/settings.py:169
-msgid "Kyrgyz"
+msgid "English"
 msgstr ""
 
-#: IPDD/settings.py:196
-msgid "API authentication token lifetime."
+#: IPDD/settings.py:170
+msgid "Russian"
+msgstr ""
+
+#: IPDD/settings.py:171
+msgid "Kyrgyz"
 msgstr ""
 
 #: api/authentication/exceptions.py:8
@@ -82,6 +118,14 @@ msgstr ""
 msgid "Hourly"
 msgstr ""
 
+#: apps/authentication/admin.py:15
+msgid "Personal info"
+msgstr ""
+
+#: apps/authentication/admin.py:28
+msgid "Important dates"
+msgstr ""
+
 #: apps/authentication/models.py:8
 msgid "Expiration date"
 msgstr ""
@@ -90,22 +134,40 @@ msgstr ""
 msgid "Phone"
 msgstr ""
 
-#: apps/category/models.py:6 apps/category/models.py:13
+#: apps/authentication/models.py:13
+msgid "Telegram chat id"
+msgstr ""
+
+#: apps/authentication/models.py:17 apps/category/models.py:6
+#: apps/category/models.py:13
 #: templates/dashboard/modules/customer_points_earned.html:51
 #: templates/dashboard/modules/customer_points_used.html:51
 msgid "Name"
+msgstr ""
+
+#: apps/authentication/models.py:18
+msgid "Telegram bot admin"
+msgstr ""
+
+#: apps/authentication/models.py:19 apps/post/models.py:20
+msgid "Active"
+msgstr ""
+
+#: apps/authentication/models.py:20 apps/post/models.py:22
+#: apps/post/models.py:36 apps/post/models.py:46
+msgid "Created at"
 msgstr ""
 
 #: apps/category/models.py:14
 msgid "Violator"
 msgstr ""
 
-#: apps/post/admin.py:32
+#: apps/post/admin.py:30
 msgid "Preview"
 msgstr ""
 
-#: apps/post/admin.py:50 apps/post/models.py:14 bot/main.py:586 bot/main.py:723
-#: bot/main.py:1184
+#: apps/post/admin.py:56 apps/post/models.py:14 bot/main.py:615 bot/main.py:771
+#: bot/main.py:1303
 msgid "Status"
 msgstr ""
 
@@ -121,31 +183,39 @@ msgstr ""
 msgid "Approved"
 msgstr ""
 
-#: apps/post/models.py:12 apps/post/models.py:42 bot/main.py:1181
+#: apps/post/choices.py:12
+msgid "Image"
+msgstr ""
+
+#: apps/post/choices.py:13
+msgid "Video"
+msgstr ""
+
+#: apps/post/models.py:12 apps/post/models.py:43 bot/main.py:1300
 msgid "User"
 msgstr ""
 
-#: apps/post/models.py:13 bot/main.py:584 bot/main.py:721 bot/main.py:1182
-#: bot/main.py:1260
+#: apps/post/models.py:13 bot/main.py:613 bot/main.py:769 bot/main.py:1301
+#: bot/main.py:1386
 msgid "Category"
 msgstr ""
 
-#: apps/post/models.py:15 bot/main.py:597 bot/main.py:734 bot/main.py:1195
-#: bot/main.py:1266
+#: apps/post/models.py:15 bot/main.py:620 bot/main.py:776 bot/main.py:1308
+#: bot/main.py:1392
 msgid "Address"
 msgstr ""
 
-#: apps/post/models.py:16 bot/main.py:589 bot/main.py:726 bot/main.py:1187
-#: bot/main.py:1264
+#: apps/post/models.py:16 bot/main.py:618 bot/main.py:774 bot/main.py:1306
+#: bot/main.py:1390
 msgid "License plate"
 msgstr ""
 
-#: apps/post/models.py:17 bot/main.py:599 bot/main.py:736 bot/main.py:1197
-#: bot/main.py:1268
+#: apps/post/models.py:17 bot/main.py:622 bot/main.py:778 bot/main.py:1310
+#: bot/main.py:1394
 msgid "Description"
 msgstr ""
 
-#: apps/post/models.py:18 bot/main.py:592 bot/main.py:729 bot/main.py:1190
+#: apps/post/models.py:18
 msgid "Location"
 msgstr ""
 
@@ -153,19 +223,11 @@ msgstr ""
 msgid "Location image"
 msgstr ""
 
-#: apps/post/models.py:20
-msgid "Active"
-msgstr ""
-
 #: apps/post/models.py:21
 msgid "Telegram bot message id"
 msgstr ""
 
-#: apps/post/models.py:22 apps/post/models.py:35 apps/post/models.py:45
-msgid "Created at"
-msgstr ""
-
-#: apps/post/models.py:32 apps/post/models.py:43
+#: apps/post/models.py:32 apps/post/models.py:44
 msgid "Post"
 msgstr ""
 
@@ -177,252 +239,289 @@ msgstr ""
 msgid "Telegram bot file id"
 msgstr ""
 
-#: apps/post/models.py:44
+#: apps/post/models.py:35
+msgid "Type"
+msgstr ""
+
+#: apps/post/models.py:45
 msgid "Text"
 msgstr ""
 
-#: bot/main.py:216
+#: bot/main.py:236
 msgid "Create new post"
 msgstr ""
 
-#: bot/main.py:217 bot/main.py:254
+#: bot/main.py:237 bot/main.py:274
 msgid "Help!"
 msgstr ""
 
-#: bot/main.py:219
+#: bot/main.py:239
 msgid "Welcome to IPDD!"
 msgstr ""
 
-#: bot/main.py:240
+#: bot/main.py:260
 msgid "Canceled"
 msgstr ""
 
-#: bot/main.py:262 bot/main.py:406 bot/main.py:426 bot/main.py:447
-#: bot/main.py:1002
+#: bot/main.py:282 bot/main.py:427 bot/main.py:447 bot/main.py:468
+#: bot/main.py:1065
 msgid "Please send the license plate"
 msgstr ""
 
-#: bot/main.py:274
+#: bot/main.py:294
 msgid "Please choose the violator"
 msgstr ""
 
-#: bot/main.py:281
+#: bot/main.py:301
 msgid "New post"
 msgstr ""
 
-#: bot/main.py:290
+#: bot/main.py:310
 msgid "Violator selected"
 msgstr ""
 
-#: bot/main.py:297
+#: bot/main.py:317
 msgid "Please select category"
 msgstr ""
 
-#: bot/main.py:308
+#: bot/main.py:328
 msgid "category selected"
 msgstr ""
 
-#: bot/main.py:311 bot/main.py:319
-msgid "Please send photos, max 3 allowed"
+#: bot/main.py:331 bot/main.py:339
+msgid "Please send photo or video, max 3 allowed"
 msgstr ""
 
-#: bot/main.py:323
+#: bot/main.py:343
 msgid "Yes"
 msgstr ""
 
-#: bot/main.py:324
+#: bot/main.py:344
 msgid "No"
 msgstr ""
 
-#: bot/main.py:333 bot/main.py:353 bot/main.py:365 bot/main.py:370
-#: bot/main.py:388 bot/main.py:403 bot/main.py:412 bot/main.py:422
-#: bot/main.py:445
+#: bot/main.py:354 bot/main.py:374 bot/main.py:386 bot/main.py:391
+#: bot/main.py:409 bot/main.py:424 bot/main.py:433 bot/main.py:443
+#: bot/main.py:466
 msgid "Skip this step"
 msgstr ""
 
-#: bot/main.py:335 bot/main.py:355 bot/main.py:366 bot/main.py:390
-#: bot/main.py:943 bot/main.py:956
+#: bot/main.py:356 bot/main.py:376 bot/main.py:387 bot/main.py:411
+#: bot/main.py:1006 bot/main.py:1019
 msgid "Please send the location"
 msgstr ""
 
-#: bot/main.py:339
-msgid "Finish photo upload?"
+#: bot/main.py:360
+msgid "Finish media upload?"
 msgstr ""
 
-#: bot/main.py:350
-msgid "Photo uploaded"
+#: bot/main.py:371
+msgid "Media uploaded"
 msgstr ""
 
-#: bot/main.py:358
-msgid "Please send more photo"
+#: bot/main.py:379
+msgid "Please send more photo or video"
 msgstr ""
 
-#: bot/main.py:371 bot/main.py:383 bot/main.py:414 bot/main.py:974
+#: bot/main.py:392 bot/main.py:404 bot/main.py:435 bot/main.py:1037
 msgid "Please send the address"
 msgstr ""
 
-#: bot/main.py:380
+#: bot/main.py:401
 msgid "Location skipped"
 msgstr ""
 
-#: bot/main.py:401
+#: bot/main.py:422
 msgid "Address skipped"
 msgstr ""
 
-#: bot/main.py:437
+#: bot/main.py:458
 msgid "License plate skipped"
 msgstr ""
 
-#: bot/main.py:440 bot/main.py:456 bot/main.py:1033
+#: bot/main.py:461 bot/main.py:477 bot/main.py:1096
 msgid "Please send the description"
 msgstr ""
 
-#: bot/main.py:476
-msgid ""
-"Thanks for your message, the request will be reviewed and we will return to "
-"you!"
+#: bot/main.py:483
+msgid "Your post is being processed"
 msgstr ""
 
-#: bot/main.py:491
+#: bot/main.py:488
+msgid ""
+"Thanks for your message, the request will be reviewed and we will return to "
+"you! You can see your post in @citizen_kg channel after approval."
+msgstr ""
+
+#: bot/main.py:494
+msgid "New /pending posts for approval available."
+msgstr ""
+
+#: bot/main.py:508
 msgid "Your have no posts yet"
 msgstr ""
 
-#: bot/main.py:502 bot/main.py:539
+#: bot/main.py:519 bot/main.py:556
 msgid "Your posts"
 msgstr ""
 
-#: bot/main.py:553 bot/main.py:700
+#: bot/main.py:571 bot/main.py:737
 msgid "Post details"
 msgstr ""
 
-#: bot/main.py:568
+#: bot/main.py:586
 msgid "Update post"
 msgstr ""
 
-#: bot/main.py:572
+#: bot/main.py:590
 msgid "Delete post"
 msgstr ""
 
-#: bot/main.py:585 bot/main.py:722 bot/main.py:1183 bot/main.py:1261
+#: bot/main.py:614 bot/main.py:770 bot/main.py:1302 bot/main.py:1387
 msgid "Creation date"
 msgstr ""
 
-#: bot/main.py:646 bot/main.py:685
+#: bot/main.py:682 bot/main.py:721
 msgid "Found posts"
 msgstr ""
 
-#: bot/main.py:649
+#: bot/main.py:685
 msgid "No matches found"
 msgstr ""
 
-#: bot/main.py:762
+#: bot/main.py:817
 msgid "Post update"
 msgstr ""
 
-#: bot/main.py:770
+#: bot/main.py:825
 msgid "Please select what you would like to update"
 msgstr ""
 
-#: bot/main.py:785
+#: bot/main.py:840
 msgid "Select category"
 msgstr ""
 
-#: bot/main.py:821
+#: bot/main.py:876
 msgid "Category updated"
 msgstr ""
 
-#: bot/main.py:835
-msgid "Update photo"
+#: bot/main.py:890
+msgid "Update media"
 msgstr ""
 
-#: bot/main.py:845
+#: bot/main.py:900
 msgid "Delete"
 msgstr ""
 
-#: bot/main.py:850 bot/main.py:902
-msgid "Add photo"
+#: bot/main.py:905
+msgid "Add media"
 msgstr ""
 
-#: bot/main.py:873
-msgid "No photo found"
+#: bot/main.py:934
+msgid "No media found"
 msgstr ""
 
-#: bot/main.py:886
+#: bot/main.py:947
 msgid "Photo delete"
 msgstr ""
 
-#: bot/main.py:892
+#: bot/main.py:953
 msgid "Photo deleted"
 msgstr ""
 
-#: bot/main.py:901 bot/main.py:913
+#: bot/main.py:962 bot/main.py:974
 msgid ""
-"Please send photos, max 3 allowed, if exceeded, will substitute existing "
-"photo"
+"Please send photo or video, max 3 allowed, if exceeded, will substitute "
+"existing media"
 msgstr ""
 
-#: bot/main.py:937
-msgid "Photo updated"
+#: bot/main.py:963
+msgid "Add photo"
 msgstr ""
 
-#: bot/main.py:946
+#: bot/main.py:1000
+msgid "Media updated"
+msgstr ""
+
+#: bot/main.py:1009
 msgid "Update location"
 msgstr ""
 
-#: bot/main.py:968
+#: bot/main.py:1031
 msgid "Location updated"
 msgstr ""
 
-#: bot/main.py:977
+#: bot/main.py:1040
 msgid "Update address"
 msgstr ""
 
-#: bot/main.py:996
+#: bot/main.py:1059
 msgid "Address updated"
 msgstr ""
 
-#: bot/main.py:1005
+#: bot/main.py:1068
 msgid "Update license plate"
 msgstr ""
 
-#: bot/main.py:1025
+#: bot/main.py:1088
 msgid "License plate updated"
 msgstr ""
 
-#: bot/main.py:1036
+#: bot/main.py:1099
 msgid "Update description"
 msgstr ""
 
-#: bot/main.py:1055
+#: bot/main.py:1118
 msgid "Description updated"
 msgstr ""
 
-#: bot/main.py:1064 bot/main.py:1073
+#: bot/main.py:1127 bot/main.py:1136
 msgid "Post deleted"
 msgstr ""
 
-#: bot/main.py:1084 bot/main.py:1093
+#: bot/main.py:1147 bot/main.py:1156
 msgid "Post approved"
 msgstr ""
 
-#: bot/main.py:1106 bot/main.py:1115
+#: bot/main.py:1169 bot/main.py:1178
 msgid "Post rejected"
 msgstr ""
 
-#: bot/main.py:1137 bot/main.py:1250
+#: bot/main.py:1191
+msgid "Post feedback"
+msgstr ""
+
+#: bot/main.py:1197
+msgid "Please write your feedback for user"
+msgstr ""
+
+#: bot/main.py:1208
+#, python-brace-format
+msgid "User with id {user_id} not found!"
+msgstr ""
+
+#: bot/main.py:1217
+msgid "Feedback sent"
+msgstr ""
+
+#: bot/main.py:1240 bot/main.py:1376
 msgid "Pending posts"
 msgstr ""
 
-#: bot/main.py:1149
+#: bot/main.py:1253
 msgid "Post review"
 msgstr ""
 
-#: bot/main.py:1165
+#: bot/main.py:1269
 msgid "Approve"
 msgstr ""
 
-#: bot/main.py:1169
+#: bot/main.py:1273
 msgid "Reject"
+msgstr ""
+
+#: bot/main.py:1277
+msgid "Feedback"
 msgstr ""
 
 #: dashboard/dashboard_modules.py:61
@@ -519,6 +618,10 @@ msgstr ""
 
 #: templates/admin/post/post/change_form.html:18
 msgid "Image preview"
+msgstr ""
+
+#: templates/admin/post/post/change_form.html:36
+msgid "Video preview"
 msgstr ""
 
 #: templates/dashboard/custom_dashboard.html:78

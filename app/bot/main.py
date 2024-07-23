@@ -95,7 +95,7 @@ NO = 'no'
 
 UPDATE_FIELDS_LIST = (
     ('category_id', 'Category'),
-    ('photo', 'Photo'),
+    ('photo', 'Media'),
     ('license_plate', 'License plate'),
     ('location', 'Location'),
     ('address', 'Address'),
