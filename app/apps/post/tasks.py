@@ -48,20 +48,26 @@ def process_media(post_id: int | str):
                 height = 1080
             img = img.resize((width, height))
             img.save(fp, format='jpeg', quality=80, optimize=True)
-        elif photo.file_type == PostMediaType.VIDEO:
-            # TODO: Scale video down if too big resolution.
-            data = ffmpeg.probe(photo.file.path)
-            for stream in data.get('streams', []):
-                if stream.get('codec_type') != 'video':
-                    continue
-                duration = stream.get('duration')
-                if float(duration) > config.MAX_VIDEO_DURATION:
-                    input = ffmpeg.input(photo.file.path)
-                    output_file_name = os.path.join(tempfile.gettempdir(), photo.file_id + '_output')
-                    output = ffmpeg.output(input.trim(0, config.MAX_VIDEO_DURATION), output_file_name)
-                    output.run()
-                    with open(output_file_name, 'rb') as of:
-                        fp.write(of.read())
-                    os.remove(output_file_name)
         with open(photo.file.path, 'wb') as f:
             f.write(fp.read())
+        # elif photo.file_type == PostMediaType.VIDEO:
+        #     # TODO: Scale video down if too big resolution.
+        #     data = ffmpeg.probe(photo.file.path)
+        #     for stream in data.get('streams', []):
+        #         if stream.get('codec_type') != 'video':
+        #             continue
+        #         duration = stream.get('duration')
+        #         if float(duration) > config.MAX_VIDEO_DURATION:
+        #             input = ffmpeg.input(photo.file.path)
+        #             output_file_name = os.path.join(tempfile.gettempdir(), photo.file_id + '_output')
+        #             output = ffmpeg.output(
+        #                 input.trim(start_frame=0, end_frame=config.MAX_VIDEO_DURATION),
+        #                 output_file_name
+        #             )
+        #             output.run()
+        #             with open(output_file_name, 'rb') as of:
+        #                 fp.write(of.read())
+        #             os.remove(output_file_name)
+        #     pass
+        # with open(photo.file.path, 'wb') as f:
+        #     f.write(fp.read())
