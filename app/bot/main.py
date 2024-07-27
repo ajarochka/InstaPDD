@@ -969,6 +969,7 @@ async def photo_update_add_cb(query: CallbackQuery, state: FSMContext):
 
 @dp.message(PostUpdateForm.photo)
 async def photo_update_add_complete(message: Message, state: FSMContext, album: list[PhotoSize] = None):
+    from apps.post.tasks import process_media
     photos = album or [message.photo] if message.photo else []
     if not photos:
         msg = _('Please send photo or video, max 3 allowed, if exceeded, will substitute existing media')
@@ -998,6 +999,7 @@ async def photo_update_add_complete(message: Message, state: FSMContext, album: 
         text=f'< {_("Back to post")}', callback_data=f'post:{post_id}:page:{page}')
     )
     await bot.send_message(message.from_user.id, _('Media updated'), reply_markup=post_inline_builder.as_markup())
+    process_media.delay(post_id)
 
 
 @dp.callback_query(F.data.casefold().startswith(f'post_update:location'))
