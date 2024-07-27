@@ -1428,8 +1428,15 @@ async def create_post(message: Message, data: dict):
         data['location'] = Point(x=location.longitude, y=location.latitude)
     post = await sync_to_async(Post.objects.create)(user=user, **data)
     for photo in photos:
+        fp = io.BytesIO()
+        # Each photo has 4 resolutions, the last one has the best quality.
+        p = photo[-1] if isinstance(photo, (list, tuple)) else photo
+        await bot.download(p.file_id, fp)
         file_type = PostMediaType.VIDEO if getattr(photo, 'mime_type', '').startswith('video') else PostMediaType.IMAGE
-        process_media.delay(post.id, photo.file_id, photo.file_unique_id, file_type)
+        PostMedia.objects.create(
+            post_id=post.id, file=File(fp, p.file_unique_id), file_id=p.file_id, file_type=file_type
+        )
+    process_media.delay(post.id)
 
 
 def bot_send_post(chat_id: int | str, post_id: int | str):
