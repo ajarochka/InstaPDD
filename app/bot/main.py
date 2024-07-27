@@ -483,8 +483,8 @@ async def new_post_step_seven(message: Message, state: FSMContext):
     await message.answer(_('Your post is being processed'), reply_markup=ReplyKeyboardRemove())
     await state.update_data(description=message.text)
     data = await state.get_data()
-    await create_post(message, data)
     await state.clear()
+    await create_post(message, data)
     msg = _('Thanks for your message, the request will be reviewed and we will return to you! '
             'You can see your post in @citizen_kg channel after approval.')
     await message.answer(msg, reply_markup=ReplyKeyboardRemove())
@@ -1433,7 +1433,7 @@ async def create_post(message: Message, data: dict):
         p = photo[-1] if isinstance(photo, (list, tuple)) else photo
         await bot.download(p.file_id, fp)
         file_type = PostMediaType.VIDEO if getattr(photo, 'mime_type', '').startswith('video') else PostMediaType.IMAGE
-        PostMedia.objects.create(
+        await sync_to_async(PostMedia.objects.create)(
             post_id=post.id, file=File(fp, p.file_unique_id), file_id=p.file_id, file_type=file_type
         )
     process_media.delay(post.id)
